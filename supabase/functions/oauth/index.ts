@@ -31,137 +31,319 @@ function getAuthPage(
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Skills Platform - Login</title>
+  <title>Skills Platform - Sign In</title>
   <style>
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
     }
+
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 20px;
+      position: relative;
+      overflow: hidden;
     }
+
+    /* Animated background elements */
+    body::before,
+    body::after {
+      content: '';
+      position: absolute;
+      width: 300px;
+      height: 300px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      animation: float 20s infinite ease-in-out;
+    }
+
+    body::before {
+      top: -100px;
+      left: -100px;
+      animation-delay: 0s;
+    }
+
+    body::after {
+      bottom: -100px;
+      right: -100px;
+      animation-delay: 10s;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(50px, 50px) scale(1.1); }
+    }
+
     .container {
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-      padding: 40px;
+      background: rgba(255, 255, 255, 0.98);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      box-shadow: 0 20px 80px rgba(0, 0, 0, 0.25);
+      padding: 48px 40px;
       width: 100%;
-      max-width: 400px;
+      max-width: 420px;
+      position: relative;
+      z-index: 1;
+      animation: slideUp 0.4s ease-out;
     }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .logo {
+      width: 56px;
+      height: 56px;
+      margin: 0 auto 24px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      font-weight: 700;
+      color: white;
+      box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+    }
+
     h1 {
-      color: #333;
-      font-size: 24px;
+      color: #1a202c;
+      font-size: 28px;
+      font-weight: 700;
       margin-bottom: 8px;
       text-align: center;
+      letter-spacing: -0.5px;
     }
+
     .subtitle {
-      color: #666;
-      font-size: 14px;
-      margin-bottom: 30px;
+      color: #718096;
+      font-size: 15px;
+      margin-bottom: 32px;
       text-align: center;
     }
+
     .error {
-      background: #fee;
+      background: linear-gradient(135deg, #fee 0%, #fdd 100%);
       border: 1px solid #fcc;
-      border-radius: 6px;
-      color: #c00;
-      padding: 12px;
-      margin-bottom: 20px;
+      border-radius: 12px;
+      color: #c53030;
+      padding: 14px 16px;
+      margin-bottom: 24px;
       font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: shake 0.4s ease-in-out;
     }
+
+    .error::before {
+      content: '⚠️';
+      font-size: 18px;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+
     .form-group {
       margin-bottom: 20px;
+      position: relative;
+      overflow: hidden;
+      max-height: 1000px;
+      transition: max-height 0.3s ease-out, opacity 0.3s ease-out, margin 0.3s ease-out;
     }
+
+    .form-group.hide {
+      max-height: 0;
+      opacity: 0;
+      margin-bottom: 0;
+      pointer-events: none;
+    }
+
     label {
       display: block;
-      color: #555;
+      color: #4a5568;
       font-size: 14px;
-      font-weight: 500;
-      margin-bottom: 6px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      transition: color 0.2s;
     }
+
+    .input-wrapper {
+      position: relative;
+    }
+
     input {
       width: 100%;
-      padding: 12px 14px;
-      border: 1px solid #ddd;
-      border-radius: 6px;
+      padding: 14px 16px;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
       font-size: 16px;
-      transition: border-color 0.2s;
+      transition: all 0.2s ease;
+      background: white;
     }
+
     input:focus {
       outline: none;
       border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
     }
-    .username-group {
-      display: none;
+
+    input:focus + label {
+      color: #667eea;
     }
-    .username-group.show {
-      display: block;
+
+    input::placeholder {
+      color: #cbd5e0;
     }
+
     button {
       width: 100%;
-      padding: 14px;
+      padding: 16px;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
       border: none;
-      border-radius: 6px;
+      border-radius: 12px;
       font-size: 16px;
       font-weight: 600;
       cursor: pointer;
-      transition: transform 0.1s, box-shadow 0.2s;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+      position: relative;
+      overflow: hidden;
+      margin-top: 8px;
     }
+
+    button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.2);
+      transition: left 0.5s ease;
+    }
+
+    button:hover::before {
+      left: 100%;
+    }
+
     button:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
     }
+
     button:active {
       transform: translateY(0);
     }
+
+    button:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+      transform: none;
+    }
+
     .toggle {
       text-align: center;
-      margin-top: 20px;
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid #e2e8f0;
     }
+
+    .toggle-text {
+      color: #718096;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
     .toggle a {
       color: #667eea;
       text-decoration: none;
-      font-size: 14px;
+      font-size: 15px;
+      font-weight: 600;
+      transition: color 0.2s;
+      display: inline-block;
     }
+
     .toggle a:hover {
-      text-decoration: underline;
+      color: #764ba2;
     }
+
     .loading {
       display: none;
       text-align: center;
       padding: 20px;
     }
+
     .loading.show {
       display: block;
+      animation: fadeIn 0.3s ease-out;
     }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
     .spinner {
-      border: 3px solid #f3f3f3;
+      border: 3px solid #e2e8f0;
       border-top: 3px solid #667eea;
       border-radius: 50%;
-      width: 30px;
-      height: 30px;
-      animation: spin 1s linear infinite;
-      margin: 0 auto 10px;
+      width: 40px;
+      height: 40px;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
     }
+
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+      color: #718096;
+      font-size: 15px;
+    }
+
+    /* Mobile responsiveness */
+    @media (max-width: 480px) {
+      .container {
+        padding: 36px 28px;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+
+      .logo {
+        width: 48px;
+        height: 48px;
+        font-size: 24px;
+      }
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Skills Platform</h1>
-    <p class="subtitle">Sign in to authorize access</p>
+    <div class="logo">S</div>
+    <h1 id="pageTitle">Welcome Back</h1>
+    <p class="subtitle">Sign in to your Skills Platform account</p>
 
     ${error ? `<div class="error">${error}</div>` : ""}
 
@@ -171,31 +353,40 @@ function getAuthPage(
       <input type="hidden" name="state" value="${state}">
       <input type="hidden" name="mode" id="mode" value="login">
 
-      <div class="form-group username-group" id="usernameGroup">
+      <div class="form-group hide" id="usernameGroup">
         <label for="username">Username</label>
-        <input type="text" id="username" name="username" placeholder="Choose a username" autocomplete="username">
+        <div class="input-wrapper">
+          <input type="text" id="username" name="username" placeholder="yourname" autocomplete="username">
+        </div>
       </div>
 
       <div class="form-group">
-        <label for="email">Email</label>
-        <input type="email" id="email" name="email" placeholder="you@example.com" required autocomplete="email">
+        <label for="email">Email Address</label>
+        <div class="input-wrapper">
+          <input type="email" id="email" name="email" placeholder="you@example.com" required autocomplete="email">
+        </div>
       </div>
 
       <div class="form-group">
         <label for="password">Password</label>
-        <input type="password" id="password" name="password" placeholder="Your password" required autocomplete="current-password">
+        <div class="input-wrapper">
+          <input type="password" id="password" name="password" placeholder="••••••••" required autocomplete="current-password">
+        </div>
       </div>
 
-      <button type="submit" id="submitBtn">Sign In</button>
+      <button type="submit" id="submitBtn">
+        <span id="btnText">Sign In</span>
+      </button>
     </form>
 
     <div class="loading" id="loading">
       <div class="spinner"></div>
-      <p>Authenticating...</p>
+      <p class="loading-text">Authenticating...</p>
     </div>
 
     <div class="toggle">
-      <a href="#" id="toggleLink">Don't have an account? Sign up</a>
+      <p class="toggle-text" id="toggleText">Don't have an account?</p>
+      <a href="#" id="toggleLink">Create Account</a>
     </div>
   </div>
 
@@ -205,7 +396,10 @@ function getAuthPage(
     const usernameGroup = document.getElementById('usernameGroup');
     const usernameInput = document.getElementById('username');
     const submitBtn = document.getElementById('submitBtn');
+    const btnText = document.getElementById('btnText');
     const toggleLink = document.getElementById('toggleLink');
+    const toggleText = document.getElementById('toggleText');
+    const pageTitle = document.getElementById('pageTitle');
     const loading = document.getElementById('loading');
     let isRegister = false;
 
@@ -215,20 +409,25 @@ function getAuthPage(
 
       if (isRegister) {
         modeInput.value = 'register';
-        usernameGroup.classList.add('show');
+        usernameGroup.classList.remove('hide');
         usernameInput.required = true;
-        submitBtn.textContent = 'Create Account';
-        toggleLink.textContent = 'Already have an account? Sign in';
+        btnText.textContent = 'Create Account';
+        toggleText.textContent = 'Already have an account?';
+        toggleLink.textContent = 'Sign In';
+        pageTitle.textContent = 'Create Account';
       } else {
         modeInput.value = 'login';
-        usernameGroup.classList.remove('show');
+        usernameGroup.classList.add('hide');
         usernameInput.required = false;
-        submitBtn.textContent = 'Sign In';
-        toggleLink.textContent = "Don't have an account? Sign up";
+        btnText.textContent = 'Sign In';
+        toggleText.textContent = "Don't have an account?";
+        toggleLink.textContent = 'Create Account';
+        pageTitle.textContent = 'Welcome Back';
       }
     });
 
-    form.addEventListener('submit', () => {
+    form.addEventListener('submit', (e) => {
+      submitBtn.disabled = true;
       form.style.display = 'none';
       loading.classList.add('show');
     });
@@ -246,60 +445,253 @@ function getSuccessPage(code: string): string {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Authorization Successful</title>
   <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 20px;
+      position: relative;
+      overflow: hidden;
     }
+
+    body::before,
+    body::after {
+      content: '';
+      position: absolute;
+      width: 300px;
+      height: 300px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      animation: float 20s infinite ease-in-out;
+    }
+
+    body::before {
+      top: -100px;
+      left: -100px;
+      animation-delay: 0s;
+    }
+
+    body::after {
+      bottom: -100px;
+      right: -100px;
+      animation-delay: 10s;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(50px, 50px) scale(1.1); }
+    }
+
     .container {
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-      padding: 40px;
+      background: rgba(255, 255, 255, 0.98);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      box-shadow: 0 20px 80px rgba(0, 0, 0, 0.25);
+      padding: 48px 40px;
       width: 100%;
-      max-width: 500px;
+      max-width: 520px;
       text-align: center;
+      position: relative;
+      z-index: 1;
+      animation: slideUp 0.4s ease-out;
     }
-    h1 { color: #333; margin-bottom: 20px; }
-    p { color: #666; margin-bottom: 20px; }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .success-icon {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 24px;
+      background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      animation: scaleIn 0.5s ease-out 0.2s both;
+      box-shadow: 0 8px 16px rgba(72, 187, 120, 0.3);
+    }
+
+    @keyframes scaleIn {
+      from {
+        transform: scale(0);
+        opacity: 0;
+      }
+      to {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    h1 {
+      color: #1a202c;
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      letter-spacing: -0.5px;
+    }
+
+    .subtitle {
+      color: #718096;
+      font-size: 15px;
+      margin-bottom: 32px;
+      line-height: 1.6;
+    }
+
+    .code-container {
+      background: #f7fafc;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .code-label {
+      color: #718096;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+    }
+
     .code {
-      background: #f5f5f5;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      padding: 15px;
-      font-family: monospace;
-      font-size: 14px;
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 16px;
+      font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+      font-size: 13px;
       word-break: break-all;
-      margin-bottom: 20px;
+      color: #2d3748;
+      line-height: 1.6;
     }
+
     button {
-      padding: 12px 24px;
+      padding: 14px 32px;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
       border: none;
-      border-radius: 6px;
-      font-size: 14px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 600;
       cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+      position: relative;
+      overflow: hidden;
     }
-    .copied { background: #4caf50; }
+
+    button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.2);
+      transition: left 0.5s ease;
+    }
+
+    button:hover::before {
+      left: 100%;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button.copied {
+      background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+      box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
+    }
+
+    button.copied:hover {
+      box-shadow: 0 6px 20px rgba(72, 187, 120, 0.4);
+    }
+
+    .hint {
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid #e2e8f0;
+      color: #718096;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        padding: 36px 28px;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+
+      .success-icon {
+        width: 64px;
+        height: 64px;
+        font-size: 32px;
+      }
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Authorization Successful</h1>
-    <p>Copy this code and paste it in your application:</p>
-    <div class="code" id="code">${code}</div>
-    <button onclick="copyCode()" id="copyBtn">Copy Code</button>
+    <div class="success-icon">✓</div>
+    <h1>Authorization Successful!</h1>
+    <p class="subtitle">Your account has been authorized. Copy the code below and paste it in your application to complete the connection.</p>
+
+    <div class="code-container">
+      <div class="code-label">Authorization Code</div>
+      <div class="code" id="code">${code}</div>
+    </div>
+
+    <button onclick="copyCode()" id="copyBtn">
+      <span id="btnText">📋 Copy Code</span>
+    </button>
+
+    <p class="hint">This code will expire in 10 minutes. Return to your application to continue.</p>
   </div>
+
   <script>
     function copyCode() {
       navigator.clipboard.writeText('${code}');
-      document.getElementById('copyBtn').textContent = 'Copied!';
-      document.getElementById('copyBtn').classList.add('copied');
+      const btn = document.getElementById('copyBtn');
+      const btnText = document.getElementById('btnText');
+
+      btnText.textContent = '✓ Copied!';
+      btn.classList.add('copied');
+
+      setTimeout(() => {
+        btnText.textContent = '📋 Copy Code';
+        btn.classList.remove('copied');
+      }, 2000);
     }
   </script>
 </body>

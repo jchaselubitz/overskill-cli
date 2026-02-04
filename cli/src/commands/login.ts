@@ -7,25 +7,39 @@ import * as auth from '../lib/auth.js';
 
 const CALLBACK_PORT = 9876;
 
+/**
+ * Get the web app URL for authentication.
+ * Falls back to deriving from API URL if not explicitly configured.
+ */
+function getAuthUrl(): string | null {
+  // Check for explicit web app URL first
+  const webAppUrl = auth.getWebAppUrl();
+  if (webAppUrl) {
+    return webAppUrl;
+  }
+
+  // Fall back to default local development URL
+  return 'http://localhost:3000';
+}
+
 export const loginCommand = new Command('login')
   .description('Authenticate with the skills platform')
   .option('--manual', 'Use manual code entry instead of browser redirect')
   .action(async (options) => {
     try {
-      const apiUrl = auth.getApiUrl();
-      if (!apiUrl) {
-        console.log(chalk.red('Error: API URL not configured.'));
-        console.log(`Run ${chalk.cyan('skills config api_url <url>')} first.`);
+      const webAppUrl = getAuthUrl();
+      if (!webAppUrl) {
+        console.log(chalk.red('Error: Web app URL not configured.'));
+        console.log(`Run ${chalk.cyan('skills config web_app_url <url>')} first.`);
         process.exit(1);
       }
 
-      // Build OAuth URL
-      const oauthBaseUrl = apiUrl.replace('/api', '/oauth');
+      // Build login URL for web app
       const redirectUri = `http://localhost:${CALLBACK_PORT}/callback`;
       const state = Math.random().toString(36).substring(7);
 
-      const authorizeUrl = new URL(`${oauthBaseUrl}/authorize`);
-      authorizeUrl.searchParams.set('client_id', 'cli');
+      const authorizeUrl = new URL(`${webAppUrl}/login`);
+      authorizeUrl.searchParams.set('cli', 'true');
       authorizeUrl.searchParams.set('redirect_uri', redirectUri);
       authorizeUrl.searchParams.set('state', state);
 
@@ -49,12 +63,13 @@ export const loginCommand = new Command('login')
           });
         });
 
-        await exchangeCodeForTokens(oauthBaseUrl, code, redirectUri);
+        await exchangeCodeForTokens(webAppUrl, code);
       } else {
         // Browser flow with local callback server
         console.log('Opening browser for authentication...');
 
         const code = await new Promise<string>((resolve, reject) => {
+          let timeoutId: NodeJS.Timeout | undefined;
           const server = createServer((req, res) => {
             const url = new URL(req.url || '', `http://localhost:${CALLBACK_PORT}`);
 
@@ -67,6 +82,7 @@ export const loginCommand = new Command('login')
                 res.end('<h1>Error: Invalid state</h1>');
                 reject(new Error('Invalid state'));
                 server.close();
+                if (timeoutId) clearTimeout(timeoutId);
                 return;
               }
 
@@ -76,6 +92,7 @@ export const loginCommand = new Command('login')
                 res.end(`<h1>Error: ${error}</h1>`);
                 reject(new Error(error));
                 server.close();
+                if (timeoutId) clearTimeout(timeoutId);
                 return;
               }
 
@@ -101,6 +118,7 @@ export const loginCommand = new Command('login')
 
               resolve(authCode);
               server.close();
+              if (timeoutId) clearTimeout(timeoutId);
             }
           });
 
@@ -109,13 +127,13 @@ export const loginCommand = new Command('login')
           });
 
           // Timeout after 5 minutes
-          setTimeout(() => {
+          timeoutId = setTimeout(() => {
             server.close();
             reject(new Error('Authentication timed out'));
           }, 5 * 60 * 1000);
         });
 
-        await exchangeCodeForTokens(oauthBaseUrl, code, redirectUri);
+        await exchangeCodeForTokens(webAppUrl, code);
       }
     } catch (error) {
       console.error(chalk.red('Error:'), error instanceof Error ? error.message : error);
@@ -124,9 +142,8 @@ export const loginCommand = new Command('login')
   });
 
 async function exchangeCodeForTokens(
-  oauthBaseUrl: string,
-  code: string,
-  redirectUri: string
+  webAppUrl: string,
+  code: string
 ): Promise<void> {
   console.log('Exchanging code for tokens...');
 
@@ -134,13 +151,11 @@ async function exchangeCodeForTokens(
     access_token: string;
     refresh_token: string;
     expires_in?: number;
-  }>(`${oauthBaseUrl}/token`, {
+  }>(`${webAppUrl}/api/auth/token`, {
     method: 'POST',
     body: {
       grant_type: 'authorization_code',
       code,
-      redirect_uri: redirectUri,
-      client_id: 'cli',
     },
   });
 
@@ -151,4 +166,7 @@ async function exchangeCodeForTokens(
   );
 
   console.log(chalk.green('Successfully logged in!'));
+
+  // Exit cleanly - the HTTP server's callback connection may still be open
+  process.exit(0);
 }

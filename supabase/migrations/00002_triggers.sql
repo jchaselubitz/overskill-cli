@@ -8,7 +8,7 @@
 CREATE OR REPLACE FUNCTION handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO profiles (id, username, display_name)
+  INSERT INTO public.profiles (id, username, display_name)
   VALUES (
     NEW.id,
     COALESCE(NEW.raw_user_meta_data->>'username', split_part(NEW.email, '@', 1)),
@@ -16,7 +16,7 @@ BEGIN
   );
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
@@ -32,17 +32,17 @@ DECLARE
   new_registry_id UUID;
 BEGIN
   -- Create personal registry
-  INSERT INTO registries (slug, name, type, created_by)
+  INSERT INTO public.registries (slug, name, type, created_by)
   VALUES (NEW.username, NEW.username || '''s Skills', 'personal', NEW.id)
   RETURNING id INTO new_registry_id;
 
   -- Add user as admin of their own registry
-  INSERT INTO registry_members (registry_id, user_id, role)
+  INSERT INTO public.registry_members (registry_id, user_id, role)
   VALUES (new_registry_id, NEW.id, 'admin');
 
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
 CREATE TRIGGER on_profile_created
   AFTER INSERT ON profiles
@@ -104,11 +104,11 @@ CREATE OR REPLACE FUNCTION is_registry_member(registry_id UUID, user_id UUID)
 RETURNS BOOLEAN AS $$
 BEGIN
   RETURN EXISTS (
-    SELECT 1 FROM registry_members rm
+    SELECT 1 FROM public.registry_members rm
     WHERE rm.registry_id = $1 AND rm.user_id = $2
   );
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
 -- =============================================================================
 -- HELPER FUNCTION: CHECK IF USER IS REGISTRY ADMIN
@@ -118,11 +118,11 @@ CREATE OR REPLACE FUNCTION is_registry_admin(registry_id UUID, user_id UUID)
 RETURNS BOOLEAN AS $$
 BEGIN
   RETURN EXISTS (
-    SELECT 1 FROM registry_members rm
+    SELECT 1 FROM public.registry_members rm
     WHERE rm.registry_id = $1 AND rm.user_id = $2 AND rm.role = 'admin'
   );
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
 -- =============================================================================
 -- HELPER FUNCTION: CHECK IF USER CAN WRITE TO SKILL
@@ -134,7 +134,7 @@ DECLARE
   skill_record RECORD;
 BEGIN
   SELECT s.created_by, s.registry_id INTO skill_record
-  FROM skills s WHERE s.id = $1;
+  FROM public.skills s WHERE s.id = $1;
 
   IF NOT FOUND THEN
     RETURN false;
@@ -146,7 +146,7 @@ BEGIN
   END IF;
 
   -- User is skill maintainer
-  IF EXISTS (SELECT 1 FROM skill_maintainers sm WHERE sm.skill_id = $1 AND sm.user_id = $2) THEN
+  IF EXISTS (SELECT 1 FROM public.skill_maintainers sm WHERE sm.skill_id = $1 AND sm.user_id = $2) THEN
     RETURN true;
   END IF;
 
@@ -157,4 +157,4 @@ BEGIN
 
   RETURN false;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;

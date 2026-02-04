@@ -137,6 +137,8 @@ export interface InvitationResponse {
 // CLI config types (stored in ~/.config/agent-skills/)
 export interface CLIConfig {
   api_url?: string;
+  api_key?: string;
+  web_app_url?: string;
   access_token?: string;
   refresh_token?: string;
   expires_at?: number;

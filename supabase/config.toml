@@ -93,6 +93,17 @@ enabled = true
 # Configure one of the supported request policies: `per_worker` (default) or `oneshot`.
 policy = "per_worker"
 
+# Disable automatic JWT verification for Edge Functions so our API can handle auth internally.
+# This is needed because our API has public endpoints (login, register) and handles auth per-route.
+[functions.api]
+verify_jwt = false
+
+[functions.oauth]
+verify_jwt = false
+
+[functions.mcp]
+verify_jwt = false
+
 [analytics]
 enabled = false
 port = 54327

@@ -1,0 +1,6 @@
+sources:
+  - name: "default"
+    registry: "skillhub"
+    url: "http://localhost:54321/functions/v1/api"
+install_path: ".skills"
+skills: []

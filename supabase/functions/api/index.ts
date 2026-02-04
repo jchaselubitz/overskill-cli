@@ -1,6 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { createSupabaseClient, createAdminClient } from "../_shared/supabase.ts";
+import {
+  createSupabaseClient,
+  createAdminClient,
+} from "../_shared/supabase.ts";
 import { handleCors, jsonResponse, corsHeaders } from "../_shared/cors.ts";
 import {
   unauthorizedError,
@@ -362,7 +364,9 @@ serve(async (req: Request) => {
         if (error.code === "PGRST116") {
           return notFoundError(`Registry '${slug}' not found`);
         }
-        return forbiddenError("You don't have permission to update this registry");
+        return forbiddenError(
+          "You don't have permission to update this registry"
+        );
       }
 
       return jsonResponse({ registry });
@@ -509,7 +513,9 @@ serve(async (req: Request) => {
 
       if (invError) {
         if (invError.code === "23505") {
-          return conflictError("An invitation is already pending for this email");
+          return conflictError(
+            "An invitation is already pending for this email"
+          );
         }
         return internalError(invError.message);
       }
@@ -546,7 +552,9 @@ serve(async (req: Request) => {
         .single();
 
       if (error) {
-        return forbiddenError("You don't have permission to update this member");
+        return forbiddenError(
+          "You don't have permission to update this member"
+        );
       }
 
       return jsonResponse({ member });
@@ -578,7 +586,9 @@ serve(async (req: Request) => {
         .eq("user_id", userId);
 
       if (error) {
-        return forbiddenError("You don't have permission to remove this member");
+        return forbiddenError(
+          "You don't have permission to remove this member"
+        );
       }
 
       return jsonResponse({ success: true });
@@ -728,7 +738,9 @@ serve(async (req: Request) => {
       }
 
       if (search) {
-        query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`);
+        query = query.or(
+          `name.ilike.%${search}%,description.ilike.%${search}%`
+        );
       }
 
       const { data: skills, error } = await query;
@@ -875,7 +887,9 @@ serve(async (req: Request) => {
         .single();
 
       if (error || !skill) {
-        return notFoundError(`Skill '${skillSlug}' not found in registry '${slug}'`);
+        return notFoundError(
+          `Skill '${skillSlug}' not found in registry '${slug}'`
+        );
       }
 
       return jsonResponse({
@@ -1339,7 +1353,8 @@ serve(async (req: Request) => {
             versionQuery = versionQuery.eq("is_latest", true);
           }
 
-          const { data: version, error: versionError } = await versionQuery.single();
+          const { data: version, error: versionError } =
+            await versionQuery.single();
 
           if (versionError || !version) {
             errors.push({

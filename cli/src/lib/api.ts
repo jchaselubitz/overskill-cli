@@ -24,6 +24,15 @@ function getBaseUrl(): string {
 }
 
 /**
+ * Get the web app URL for token refresh
+ */
+function getWebAppUrl(): string {
+  const url = auth.getWebAppUrl();
+  // Fall back to default local development URL
+  return url || 'http://localhost:3000';
+}
+
+/**
  * Get authorization headers
  */
 async function getAuthHeaders(): Promise<Record<string, string>> {
@@ -31,6 +40,10 @@ async function getAuthHeaders(): Promise<Record<string, string>> {
   if (!token) {
     throw new Error('Not logged in. Run `skills login` first.');
   }
+
+  const apiKey =
+    process.env.SUPABASE_ANON_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
   // Check if token is expired and refresh if needed
   if (auth.isTokenExpired()) {
@@ -40,22 +53,31 @@ async function getAuthHeaders(): Promise<Record<string, string>> {
     }
 
     try {
-      const response = await ofetch<{ access_token: string; refresh_token: string }>(
-        `${getBaseUrl()}/auth/refresh`,
+      const response = await ofetch<{ access_token: string; refresh_token: string; expires_in?: number }>(
+        `${getWebAppUrl()}/api/auth/token`,
         {
           method: 'POST',
-          body: { refresh_token: refreshToken },
+          body: {
+            grant_type: 'refresh_token',
+            refresh_token: refreshToken,
+          },
         }
       );
-      auth.setTokens(response.access_token, response.refresh_token, 3600);
-      return { Authorization: `Bearer ${response.access_token}` };
+      auth.setTokens(response.access_token, response.refresh_token, response.expires_in || 3600);
+      return {
+        Authorization: `Bearer ${response.access_token}`,
+        ...(apiKey ? { apikey: apiKey } : {}),
+      };
     } catch {
       auth.clearTokens();
       throw new Error('Session expired. Run `skills login` again.');
     }
   }
 
-  return { Authorization: `Bearer ${token}` };
+  return {
+    Authorization: `Bearer ${token}`,
+    ...(apiKey ? { apikey: apiKey } : {}),
+  };
 }
 
 /**

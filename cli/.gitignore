@@ -1,0 +1,7 @@
+
+# Skills (synced files, not committed)
+.skills/
+
+/node_modules
+
+dist/
