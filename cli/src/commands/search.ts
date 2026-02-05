@@ -1,29 +1,38 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
-import ora from 'ora';
-import * as api from '../lib/api.js';
+import * as localRegistry from '../lib/local-registry/index.js';
 
 export const searchCommand = new Command('search')
-  .description('Search for skills across all accessible registries')
+  .description('Search for skills in the local registry')
   .argument('<query>', 'Search query')
   .option('-t, --tags <tags>', 'Filter by tags (comma-separated)')
   .option('-c, --compat <compat>', 'Filter by compatibility (comma-separated)')
   .action(async (query: string, options) => {
     try {
-      const spinner = ora(`Searching for "${query}"...`).start();
+      // Search local registry
+      let results = localRegistry.searchSkills(query);
 
-      const filterTags = options.tags?.split(',').map((t: string) => t.trim());
-      const filterCompat = options.compat?.split(',').map((c: string) => c.trim());
+      // Additional tag filtering
+      if (options.tags) {
+        const filterTags = options.tags.split(',').map((t: string) => t.trim().toLowerCase());
+        results = results.filter((skill) =>
+          skill.meta.tags.some((tag) => filterTags.includes(tag.toLowerCase()))
+        );
+      }
 
-      const results = await api.search(query, {
-        tags: filterTags,
-        compat: filterCompat,
-      });
-
-      spinner.stop();
+      // Additional compat filtering
+      if (options.compat) {
+        const filterCompat = options.compat.split(',').map((c: string) => c.trim().toLowerCase());
+        results = results.filter((skill) =>
+          skill.meta.compat.some((c) => filterCompat.includes(c.toLowerCase()))
+        );
+      }
 
       if (results.length === 0) {
-        console.log(chalk.yellow('No skills found.'));
+        console.log(chalk.yellow(`No skills found matching "${query}".`));
+        console.log('');
+        console.log('To create a new skill:');
+        console.log(`  ${chalk.cyan(`skills new ${query.toLowerCase().replace(/\s+/g, '-')}`)}`);
         return;
       }
 
@@ -31,16 +40,18 @@ export const searchCommand = new Command('search')
       console.log('');
 
       for (const skill of results) {
-        const tags = skill.tags.length > 0
-          ? chalk.gray(` [${skill.tags.join(', ')}]`)
+        const tags = skill.meta.tags.length > 0
+          ? chalk.gray(` [${skill.meta.tags.join(', ')}]`)
           : '';
 
+        const matchNote = chalk.gray(` (matched on ${skill.matchedOn})`);
+
         console.log(
-          `${chalk.cyan(`${skill.registry}/${skill.slug}`).padEnd(45)} v${skill.version.padEnd(10)}${tags}`
+          `${chalk.cyan(skill.slug.padEnd(30))} v${skill.latestVersion.padEnd(10)}${tags}${matchNote}`
         );
 
-        if (skill.description) {
-          console.log(chalk.gray(`    ${skill.description}`));
+        if (skill.meta.description) {
+          console.log(chalk.gray(`    ${skill.meta.description}`));
         }
       }
     } catch (error) {

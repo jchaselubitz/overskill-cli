@@ -5,15 +5,40 @@ export interface SkillsConfig {
   skills: SkillEntry[];
 }
 
-export interface SkillSource {
+// Tagged union for source types
+export type SkillSource = LocalSource | CloudSource;
+
+export interface LocalSource {
+  name: string;
+  kind: 'local';
+}
+
+export interface CloudSource {
+  name: string;
+  kind: 'cloud';
+  registry: string;
+  url: string;
+}
+
+// Legacy source format (for backward compatibility)
+export interface LegacySource {
   name: string;
   registry: string;
   url: string;
 }
 
+// Type guards for sources
+export function isLocalSource(source: SkillSource): source is LocalSource {
+  return source.kind === 'local';
+}
+
+export function isCloudSource(source: SkillSource): source is CloudSource {
+  return source.kind === 'cloud';
+}
+
 export interface SkillEntry {
   slug: string;
-  source: string;
+  source?: string; // Optional, defaults to first local source
   version?: string;
 }
 

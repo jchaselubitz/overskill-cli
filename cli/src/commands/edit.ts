@@ -5,6 +5,7 @@ import chalk from 'chalk';
 import * as config from '../lib/config.js';
 import * as fs from '../lib/fs.js';
 import * as auth from '../lib/auth.js';
+import { parseEditorCommand } from '../lib/editor.js';
 
 export const editCommand = new Command('edit')
   .description('Open a skill for editing in your default editor')
@@ -35,10 +36,20 @@ export const editCommand = new Command('edit')
       console.log(`Opening ${chalk.cyan(skillPath)} in ${editor}...`);
 
       // Open editor
-      const child = spawn(editor, [skillPath], {
-        stdio: 'inherit',
-        shell: true,
-      });
+      let command: string;
+      let args: string[];
+
+      try {
+        const parsed = parseEditorCommand(editor);
+        command = parsed.command;
+        args = parsed.args;
+      } catch (error) {
+        console.error(chalk.red('Error:'), error instanceof Error ? error.message : error);
+        console.log(`Try setting a different editor with ${chalk.cyan('skills config editor <name>')}`);
+        process.exit(1);
+      }
+
+      const child = spawn(command, [...args, skillPath], { stdio: 'inherit' });
 
       child.on('exit', (code) => {
         if (code === 0) {

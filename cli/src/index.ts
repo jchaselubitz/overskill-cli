@@ -6,6 +6,7 @@ import { loginCommand } from './commands/login.js';
 import { syncCommand } from './commands/sync.js';
 import { addCommand } from './commands/add.js';
 import { removeCommand } from './commands/remove.js';
+import { deleteCommand } from './commands/delete.js';
 import { listCommand } from './commands/list.js';
 import { searchCommand } from './commands/search.js';
 import { infoCommand } from './commands/info.js';
@@ -17,6 +18,9 @@ import { bundleCommand } from './commands/bundle.js';
 import { configCommand } from './commands/config.js';
 import { registryCommand } from './commands/registry.js';
 import { updateCommand } from './commands/update.js';
+import { newCommand } from './commands/new.js';
+import { publishCommand } from './commands/publish.js';
+import { importCommand } from './commands/import.js';
 
 const program = new Command();
 
@@ -31,6 +35,7 @@ program.addCommand(loginCommand);
 program.addCommand(syncCommand);
 program.addCommand(addCommand);
 program.addCommand(removeCommand);
+program.addCommand(deleteCommand);
 program.addCommand(listCommand);
 program.addCommand(searchCommand);
 program.addCommand(infoCommand);
@@ -42,5 +47,8 @@ program.addCommand(bundleCommand);
 program.addCommand(configCommand);
 program.addCommand(registryCommand);
 program.addCommand(updateCommand);
+program.addCommand(newCommand);
+program.addCommand(publishCommand);
+program.addCommand(importCommand);
 
 program.parse();

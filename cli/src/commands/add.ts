@@ -1,14 +1,14 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import ora from 'ora';
+import { checkbox } from '@inquirer/prompts';
 import * as config from '../lib/config.js';
-import * as api from '../lib/api.js';
+import * as localRegistry from '../lib/local-registry/index.js';
 import type { SkillEntry } from '../types.js';
 
 export const addCommand = new Command('add')
   .description('Add one or more skills to the project')
-  .argument('<slugs...>', 'Skill slugs to add (can prefix with source: e.g., org/my-skill)')
-  .option('-s, --source <name>', 'Source name to use (default: first configured source)')
+  .argument('[slugs...]', 'Skill slugs to add')
   .option('-v, --version <constraint>', 'Version constraint (e.g., ">=1.0.0", "^2.0.0")')
   .option('--no-sync', 'Skip automatic sync after adding')
   .action(async (slugs: string[], options) => {
@@ -21,71 +21,107 @@ export const addCommand = new Command('add')
       }
 
       const skillsConfig = config.readConfig();
+
+      // If no slugs provided, show interactive selection
+      if (!slugs || slugs.length === 0) {
+        const allSkills = localRegistry.listSkills();
+
+        if (allSkills.length === 0) {
+          console.log(chalk.yellow('No skills available in local cache.'));
+          console.log('');
+          console.log('To add skills, either:');
+          console.log(`  ${chalk.cyan('skills new <slug>')}           Create a new skill`);
+          console.log(`  ${chalk.cyan('skills cache import <path>')}   Import from a file`);
+          return;
+        }
+
+        // Filter out already added skills
+        const availableSkills = allSkills.filter(
+          (skill) => !skillsConfig.skills.find((s) => s.slug === skill.slug)
+        );
+
+        if (availableSkills.length === 0) {
+          console.log(chalk.yellow('All available skills are already added to this project.'));
+          return;
+        }
+
+        // Show interactive checkbox prompt
+        const selected = await checkbox({
+          message: 'Select skills to add (use spacebar to select, enter to confirm):',
+          choices: availableSkills.map((skill) => ({
+            name: `${chalk.green(skill.slug)} - ${skill.meta.description || 'No description'}`,
+            value: skill.slug,
+          })),
+        });
+
+        if (selected.length === 0) {
+          console.log(chalk.yellow('No skills selected.'));
+          return;
+        }
+
+        slugs = selected;
+      }
+
       const addedSkills: string[] = [];
 
-      for (const input of slugs) {
-        const spinner = ora(`Adding ${input}...`).start();
+      for (const slug of slugs) {
+        const spinner = ora(`Adding ${slug}...`).start();
 
         try {
-          // Parse source/slug format
-          let sourceName: string;
-          let skillSlug: string;
-
-          if (input.includes('/')) {
-            const parts = input.split('/');
-            sourceName = parts[0];
-            skillSlug = parts.slice(1).join('/');
-          } else {
-            sourceName = options.source || skillsConfig.sources[0]?.name;
-            skillSlug = input;
-          }
-
-          if (!sourceName) {
-            spinner.fail(`No source configured. Add a source in .skills.yaml`);
+          // Check if skill exists in local registry
+          if (!localRegistry.skillExists(slug)) {
+            spinner.fail(`Skill '${slug}' not found in local cache.`);
+            console.log('');
+            console.log('To add this skill, either:');
+            console.log(`  ${chalk.cyan(`skills new ${slug}`)}           Create it locally`);
+            console.log(`  ${chalk.cyan(`skills cache import <path>`)}   Import from a file`);
             continue;
           }
 
-          const source = config.getSource(sourceName);
-          if (!source) {
-            spinner.fail(`Source '${sourceName}' not found in config`);
+          // Get skill info from local registry
+          const skillInfo = localRegistry.getSkillInfo(slug);
+          if (!skillInfo) {
+            spinner.fail(`Could not read skill '${slug}' from cache.`);
             continue;
           }
 
-          // Verify skill exists
-          try {
-            const skill = await api.getSkill(source.registry, skillSlug);
+          // Check if already added
+          const existing = skillsConfig.skills.find((s) => s.slug === slug);
+          if (existing) {
+            spinner.warn(`${slug} already added to project`);
+            continue;
+          }
 
-            // Check if already added
-            const existing = skillsConfig.skills.find(
-              (s) => s.slug === skillSlug && s.source === sourceName
-            );
-
-            if (existing) {
-              spinner.warn(`${skillSlug} already added`);
+          // Resolve version if constraint provided
+          let resolvedVersion: string | null = null;
+          if (options.version) {
+            resolvedVersion = localRegistry.resolveVersion(slug, options.version);
+            if (!resolvedVersion) {
+              const availableVersions = localRegistry.getVersionStrings(slug);
+              spinner.fail(`No cached version of '${slug}' satisfies '${options.version}'.`);
+              console.log(`  Available versions: ${availableVersions.join(', ')}`);
               continue;
             }
-
-            // Add to config
-            const entry: SkillEntry = {
-              slug: skillSlug,
-              source: sourceName,
-            };
-
-            if (options.version) {
-              entry.version = options.version;
-            }
-
-            config.addSkill(entry);
-            addedSkills.push(`${source.registry}/${skillSlug}`);
-
-            spinner.succeed(
-              `Added ${chalk.cyan(skillSlug)} from ${source.registry} (v${skill.version})`
-            );
-          } catch (error) {
-            spinner.fail(
-              `Skill '${skillSlug}' not found in registry '${source.registry}'`
-            );
+          } else {
+            resolvedVersion = localRegistry.getLatestVersion(slug);
           }
+
+          // Add to config
+          const entry: SkillEntry = {
+            slug,
+          };
+
+          if (options.version) {
+            entry.version = options.version;
+          }
+
+          config.addSkill(entry);
+          addedSkills.push(slug);
+
+          const displayVersion = resolvedVersion || localRegistry.getLatestVersion(slug);
+          spinner.succeed(
+            `Added ${chalk.cyan(slug)} (v${displayVersion})`
+          );
         } catch (error) {
           spinner.fail(error instanceof Error ? error.message : String(error));
         }

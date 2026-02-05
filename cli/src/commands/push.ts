@@ -6,9 +6,10 @@ import * as api from '../lib/api.js';
 import * as fs from '../lib/fs.js';
 import * as lockfile from '../lib/lockfile.js';
 import * as semverLib from '../lib/semver.js';
+import { isCloudSource } from '../types.js';
 
 export const pushCommand = new Command('push')
-  .description('Publish local skill changes to the remote registry')
+  .description('Publish local skill changes to a cloud registry (requires cloud source)')
   .argument('[slug]', 'Skill slug to push (optional, pushes all modified if not provided)')
   .option('-v, --version <version>', 'Version number for the new version')
   .option('-c, --changelog <message>', 'Changelog message')
@@ -24,6 +25,17 @@ export const pushCommand = new Command('push')
       if (!config.configExists()) {
         console.log(chalk.red('Error: Not in a skills project.'));
         console.log(`Run ${chalk.cyan('skills init')} first.`);
+        process.exit(1);
+      }
+
+      // Check for cloud sources
+      const cloudSources = config.getCloudSources();
+      if (cloudSources.length === 0) {
+        console.log(chalk.red('Error: This command requires a cloud source.'));
+        console.log('Configure a cloud source in .skills.yaml or use `skills init --cloud`.');
+        console.log('');
+        console.log('For local-only publishing, use:');
+        console.log(`  ${chalk.cyan('skills publish <slug>')}  Publish to local registry`);
         process.exit(1);
       }
 
@@ -63,19 +75,13 @@ export const pushCommand = new Command('push')
         }
       }
 
+      // Use first cloud source
+      const source = cloudSources[0];
+
       for (const skillSlug of skillsToPush) {
         const spinner = ora(`Pushing ${skillSlug}...`).start();
 
         try {
-          // Find skill config
-          const skillConfig = config.findSkill(skillSlug);
-          const source = skillConfig ? config.getSource(skillConfig.source) : config.getDefaultSource();
-
-          if (!source) {
-            spinner.fail(`No source configured for ${skillSlug}`);
-            continue;
-          }
-
           // Get content
           let content: string;
           if (stdinContent && skillSlug === slug) {

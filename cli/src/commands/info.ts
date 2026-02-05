@@ -1,104 +1,97 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
-import ora from 'ora';
-import * as config from '../lib/config.js';
-import * as api from '../lib/api.js';
+import * as localRegistry from '../lib/local-registry/index.js';
 
 export const infoCommand = new Command('info')
   .description('Show detailed information about a skill')
   .argument('<slug>', 'Skill slug')
-  .option('-s, --source <name>', 'Source name')
+  .option('-v, --version <version>', 'Show info for a specific version')
   .action(async (slug: string, options) => {
     try {
-      const spinner = ora(`Fetching info for ${slug}...`).start();
-
-      // Determine registry
-      let registrySlug: string | undefined;
-
-      if (slug.includes('/')) {
-        // Format: registry/slug
-        const parts = slug.split('/');
-        registrySlug = parts[0];
-        slug = parts.slice(1).join('/');
-      } else if (options.source) {
-        const source = config.getSource(options.source);
-        if (source) {
-          registrySlug = source.registry;
-        }
-      } else if (config.configExists()) {
-        // Try to find in config
-        const skill = config.findSkill(slug);
-        if (skill) {
-          const source = config.getSource(skill.source);
-          if (source) {
-            registrySlug = source.registry;
-          }
-        }
-      }
-
-      if (!registrySlug) {
-        // Search for it
-        const results = await api.search(slug);
-        const exact = results.find((r) => r.slug === slug);
-        if (exact) {
-          registrySlug = exact.registry;
-        }
-      }
-
-      if (!registrySlug) {
-        spinner.fail(`Could not find skill '${slug}'`);
+      // Check if skill exists in local registry
+      if (!localRegistry.skillExists(slug)) {
+        console.log(chalk.red(`Error: Skill '${slug}' not found in local cache.`));
+        console.log('');
+        console.log('To create this skill:');
+        console.log(`  ${chalk.cyan(`skills new ${slug}`)}`);
         process.exit(1);
       }
 
-      // Get skill details
-      const skill = await api.getSkill(registrySlug, slug);
-      const versions = await api.listVersions(registrySlug, slug);
+      // Get skill info
+      const skillInfo = localRegistry.getSkillInfo(slug);
+      if (!skillInfo) {
+        console.log(chalk.red(`Error: Could not read skill '${slug}'.`));
+        process.exit(1);
+      }
 
-      spinner.stop();
+      const latestVersion = localRegistry.getLatestVersion(slug);
 
       // Display info
       console.log('');
-      console.log(chalk.bold.cyan(`${registrySlug}/${skill.slug}`));
+      console.log(chalk.bold.cyan(slug));
       console.log('');
-      console.log(`${chalk.bold('Name:')}        ${skill.name}`);
-      console.log(`${chalk.bold('Version:')}     ${skill.version}`);
-      console.log(`${chalk.bold('Created by:')}  ${skill.created_by}`);
+      console.log(`${chalk.bold('Name:')}        ${skillInfo.meta.name}`);
+      console.log(`${chalk.bold('Latest:')}      ${latestVersion}`);
 
-      if (skill.description) {
-        console.log(`${chalk.bold('Description:')} ${skill.description}`);
+      if (skillInfo.meta.description) {
+        console.log(`${chalk.bold('Description:')} ${skillInfo.meta.description}`);
       }
 
-      if (skill.tags.length > 0) {
-        console.log(`${chalk.bold('Tags:')}        ${skill.tags.join(', ')}`);
+      if (skillInfo.meta.tags.length > 0) {
+        console.log(`${chalk.bold('Tags:')}        ${skillInfo.meta.tags.join(', ')}`);
       }
 
-      if (skill.compat.length > 0) {
-        console.log(`${chalk.bold('Compat:')}      ${skill.compat.join(', ')}`);
+      if (skillInfo.meta.compat.length > 0) {
+        console.log(`${chalk.bold('Compat:')}      ${skillInfo.meta.compat.join(', ')}`);
       }
 
-      if (skill.maintainers && skill.maintainers.length > 0) {
-        console.log(`${chalk.bold('Maintainers:')} ${skill.maintainers.join(', ')}`);
-      }
-
-      console.log(`${chalk.bold('Updated:')}     ${new Date(skill.updated_at).toLocaleString()}`);
+      console.log(`${chalk.bold('Updated:')}     ${new Date(skillInfo.meta.updatedAt).toLocaleString()}`);
 
       // Version history
-      if (versions.length > 0) {
+      if (skillInfo.versions.length > 0) {
         console.log('');
-        console.log(chalk.bold('Version History:'));
+        console.log(chalk.bold('Cached Versions:'));
 
-        for (const ver of versions.slice(0, 5)) {
-          const latest = ver.is_latest ? chalk.green(' (latest)') : '';
-          const date = new Date(ver.created_at).toLocaleDateString();
-          console.log(`  v${ver.version}${latest} - ${date} by ${ver.published_by}`);
+        const versionsToShow = options.version
+          ? skillInfo.versions.filter((v) => v.version === options.version)
+          : skillInfo.versions.slice(0, 5);
 
-          if (ver.changelog) {
-            console.log(chalk.gray(`    ${ver.changelog}`));
+        if (options.version && versionsToShow.length === 0) {
+          console.log(chalk.yellow(`  Version '${options.version}' not cached.`));
+          console.log(`  Available: ${skillInfo.versions.map((v) => v.version).join(', ')}`);
+        } else {
+          for (const ver of versionsToShow) {
+            const isLatest = ver.version === latestVersion;
+            const latest = isLatest ? chalk.green(' (latest)') : '';
+            const date = new Date(ver.createdAt).toLocaleDateString();
+            const provenance = ver.provenance.kind === 'local'
+              ? chalk.gray(` [${ver.provenance.source}]`)
+              : chalk.blue(` [from ${ver.provenance.source}]`);
+
+            console.log(`  v${ver.version}${latest} - ${date}${provenance}`);
+
+            if (ver.changelog) {
+              console.log(chalk.gray(`    ${ver.changelog}`));
+            }
+          }
+
+          if (!options.version && skillInfo.versions.length > 5) {
+            console.log(chalk.gray(`  ... and ${skillInfo.versions.length - 5} more versions`));
           }
         }
+      }
 
-        if (versions.length > 5) {
-          console.log(chalk.gray(`  ... and ${versions.length - 5} more versions`));
+      // Show content preview for specific version
+      if (options.version) {
+        const versionData = localRegistry.getVersion(slug, options.version);
+        if (versionData) {
+          console.log('');
+          console.log(chalk.bold('Content Preview:'));
+          const preview = versionData.content.split('\n').slice(0, 10).join('\n');
+          console.log(chalk.gray(preview));
+          if (versionData.content.split('\n').length > 10) {
+            console.log(chalk.gray('...'));
+          }
         }
       }
     } catch (error) {

@@ -1,0 +1,31 @@
+# .skills.lock — auto-generated, commit to repo
+locked_at: 2026-02-05T14:56:19.072Z
+skills:
+  - slug: zod-v4-patterns
+    registry: local
+    version: 1.0.0
+    sha256: e43ec9383a90fb3cca3a0fcdbebbd7e3f28e504948e721dfb2b39462eb715804
+  - slug: expo-glass-effect
+    registry: local
+    version: 1.0.0
+    sha256: c29e373e70f32039844715403af23e158f734c6d814985a9fe53e9ce5a9c8e27
+  - slug: gemini-api
+    registry: local
+    version: 1.0.0
+    sha256: 5b9ebbded56eccc9e2f6c413ffcde683615895c967aecae184f04c64fc6dc8a0
+  - slug: loading-button
+    registry: local
+    version: 1.0.0
+    sha256: f9920fa40bef30e5786fbd3ce8d8dee60ba31f6f5b6f9577f4758427da84ae05
+  - slug: rn-button-component
+    registry: local
+    version: 1.0.0
+    sha256: 806ee855fc4b1ff57896526e31912b2fcfa8c3403e65f0ae55b1c951f08ff292
+  - slug: watermelondb
+    registry: local
+    version: 1.0.0
+    sha256: 4cbe96fd56ab037b5efec0c940eecf9994da197c2a20d4b66d581005186ed5d8
+  - slug: edge-functions
+    registry: local
+    version: 1.0.0
+    sha256: 154aeff750c4be7324ec9efc7ec7c223734421276490c91613450eb03ed0e5c6

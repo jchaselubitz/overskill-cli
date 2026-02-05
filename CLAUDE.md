@@ -65,17 +65,6 @@ npm start
 CLI/MCP Client → Edge Functions (Deno/TS) → Supabase Auth (JWT) → Postgres (RLS)
 ```
 
-**Key Edge Functions:**
-- `api/index.ts` - Main REST API with route-based router handling all CRUD operations
-- `oauth/index.ts` - OAuth2 flow for MCP clients (authorization code flow)
-- `mcp/index.ts` - MCP server implementing Server-Sent Events transport
-
-**Shared Utilities** (`functions/_shared/`):
-- `supabase.ts` - Create Supabase client from request JWT
-- `cors.ts` - CORS headers and preflight handling
-- `errors.ts` - Standardized error responses
-- `types.ts` - Shared TypeScript types and validators
-
 **Database:**
 - All tables use Row-Level Security (RLS) for access control
 - Triggers auto-create profiles and registries on user signup
@@ -83,20 +72,6 @@ CLI/MCP Client → Edge Functions (Deno/TS) → Supabase Auth (JWT) → Postgres
 - See migrations in `supabase/migrations/` for schema
 
 ### CLI: TypeScript with Commander
-
-**Project Structure:**
-- `src/index.ts` - Entry point, registers all commands
-- `src/commands/` - Individual command implementations (init, sync, add, push, etc.)
-- `src/lib/` - Shared utilities (API client, auth, config, lockfile, etc.)
-
-**Key Files:**
-- `lib/config.ts` - Read/write `.skills.yaml`, find project root
-- `lib/lockfile.ts` - Read/write `.skills.lock` with version hashes
-- `lib/api.ts` - HTTP client wrapper for all API calls with auth
-- `lib/auth.ts` - Token storage and refresh logic using `conf` package
-- `lib/fs.ts` - File operations (write skills to disk)
-- `lib/index-gen.ts` - Generate `SKILLS_INDEX.md`
-- `lib/meta-skill.ts` - Bundled meta-skill content
 
 **Important Patterns:**
 - CLI uses `.skills.yaml` for configuration (committed to repo)

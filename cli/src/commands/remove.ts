@@ -6,10 +6,9 @@ import * as lockfile from '../lib/lockfile.js';
 import * as indexGen from '../lib/index-gen.js';
 
 export const removeCommand = new Command('remove')
-  .description('Remove a skill from the project')
-  .argument('<slug>', 'Skill slug to remove')
-  .option('-s, --source <name>', 'Source name (if skill exists in multiple sources)')
-  .action(async (slug: string, options) => {
+  .description('Remove one or more skills from the project')
+  .argument('<slugs...>', 'Skill slugs to remove')
+  .action(async (slugs: string[]) => {
     try {
       // Check if initialized
       if (!config.configExists()) {
@@ -18,43 +17,38 @@ export const removeCommand = new Command('remove')
         process.exit(1);
       }
 
-      // Find the skill in config
+      // Find the skills in config
       const skillsConfig = config.readConfig();
-      const skill = skillsConfig.skills.find((s) => {
-        if (options.source) {
-          return s.slug === slug && s.source === options.source;
+
+      for (const slug of slugs) {
+        const skill = skillsConfig.skills.find((s) => s.slug === slug);
+
+        if (!skill) {
+          console.log(chalk.yellow(`Skill '${slug}' not found in config.`));
+          continue;
         }
-        return s.slug === slug;
-      });
 
-      if (!skill) {
-        console.log(chalk.yellow(`Skill '${slug}' not found in config.`));
-        return;
+        // Remove from config
+        const removed = config.removeSkill(slug);
+
+        if (!removed) {
+          console.log(chalk.yellow(`Failed to remove '${slug}' from config.`));
+          continue;
+        }
+
+        // Delete from disk
+        if (fs.skillExists(slug)) {
+          fs.deleteSkill(slug);
+        }
+
+        // Remove from lockfile (use "local" as registry for local sources)
+        lockfile.removeLockedSkill(slug);
+
+        console.log(chalk.green(`Removed ${chalk.cyan(slug)}`));
       }
 
-      // Remove from config
-      const removed = config.removeSkill(slug, options.source);
-
-      if (!removed) {
-        console.log(chalk.yellow(`Failed to remove '${slug}' from config.`));
-        return;
-      }
-
-      // Delete from disk
-      if (fs.skillExists(slug)) {
-        fs.deleteSkill(slug);
-      }
-
-      // Remove from lockfile
-      const source = config.getSource(skill.source);
-      if (source) {
-        lockfile.removeLockedSkill(slug, source.registry);
-      }
-
-      // Regenerate index
+      // Regenerate index once after all removals
       indexGen.regenerateIndex();
-
-      console.log(chalk.green(`Removed ${chalk.cyan(slug)}`));
     } catch (error) {
       console.error(chalk.red('Error:'), error instanceof Error ? error.message : error);
       process.exit(1);
