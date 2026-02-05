@@ -130,6 +130,7 @@ export const newCommand = new Command('new')
     []
   )
   .option('--content <file>', 'Read content from file instead of opening editor')
+  .option('--blank', 'Open editor with blank content (frontmatter only)')
   .option('--no-editor', 'Skip editor and create with template')
   .option('--no-add', 'Skip adding to project after creation')
   .option('--no-sync', 'Skip automatic sync after adding')
@@ -181,8 +182,19 @@ export const newCommand = new Command('new')
       } else if (options.editor === false) {
         // Use template without editor
         content = `${frontmatter}${SKILL_TEMPLATE.replace('{{name}}', name)}`;
+      } else if (options.blank) {
+        // Open editor with blank content (frontmatter only)
+        console.log(chalk.gray('Opening editor with blank content...'));
+        const blankContent = `${frontmatter}\n`;
+
+        try {
+          content = await openInEditor(blankContent);
+        } catch (error) {
+          console.log(chalk.red('Error:'), error instanceof Error ? error.message : error);
+          process.exit(1);
+        }
       } else {
-        // Open editor
+        // Open editor with template
         console.log(chalk.gray('Opening editor...'));
         const template = `${frontmatter}${SKILL_TEMPLATE.replace('{{name}}', name)}`;
 

@@ -7,6 +7,7 @@ import * as lockfile from '../lib/lockfile.js';
 export const listCommand = new Command('list')
   .description('List skills')
   .option('-i, --installed', 'List only installed skills in current project')
+  .option('-l, --local', 'List skills from local registry cache')
   .option('-t, --tags <tags>', 'Filter by tags (comma-separated)')
   .option('-c, --compat <compat>', 'Filter by compatibility (comma-separated)')
   .action(async (options) => {
