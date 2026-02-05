@@ -4,9 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a skills platform (MVP) that allows developers to store, version, share, and sync reusable "agent skills" (markdown instruction files) across repositories and AI agents. The platform consists of:
+This is Overskill - a skills platform (MVP) that allows developers to store, version, share, and sync reusable skills (markdown instruction files) across repositories and AI agents. The platform consists of:
 
-1. **CLI tool** (`skills`) - TypeScript CLI published to npm for managing skills
+1. **CLI tool** (`skill`) - TypeScript CLI published to yarn for managing skills
 2. **Supabase backend** - Postgres database, Edge Functions API, authentication
 3. **MCP server** - Hosted as Supabase Edge Function to expose skills to AI agents
 
@@ -41,19 +41,19 @@ supabase functions deploy mcp
 cd cli
 
 # Install dependencies
-npm install
+yarn install
 
 # Development mode with auto-reload
-npm run dev
+yarn dev
 
 # Type checking
-npm run typecheck
+yarn typecheck
 
 # Build for production
-npm run build
+yarn build
 
 # Run built CLI
-npm start
+yarn start
 ```
 
 ## Architecture
@@ -78,7 +78,7 @@ CLI/MCP Client → Edge Functions (Deno/TS) → Supabase Auth (JWT) → Postgres
 - `.skills.lock` tracks exact versions and SHA256 hashes (like package-lock.json)
 - `SKILLS_INDEX.md` is auto-generated in install directory for AI agents to discover skills
 - Skills are installed to `.skills/` directory by default (not committed)
-- Authentication tokens stored in `~/.config/agent-skills/config.json` using `conf` package
+- Authentication tokens stored in `~/.config/overskill/config.json` using `conf` package
 
 ## Common Workflows
 
@@ -86,7 +86,7 @@ CLI/MCP Client → Edge Functions (Deno/TS) → Supabase Auth (JWT) → Postgres
 
 1. Start Supabase: `supabase start`
 2. Serve Edge Functions: `supabase functions serve`
-3. Develop CLI: `cd cli && npm run dev`
+3. Develop CLI: `cd cli && yarn dev`
 4. Test CLI commands against local API
 
 ### Testing a CLI Command
@@ -96,7 +96,7 @@ The CLI is built with `commander`. Each command is in `cli/src/commands/`.
 Example: Testing the sync command
 ```bash
 cd cli
-npm run dev sync
+yarn dev sync
 ```
 
 ### Adding a New API Endpoint
@@ -185,7 +185,7 @@ CLI should map these to friendly messages, not raw JSON errors.
 - Login via OAuth flow: opens browser to `/oauth/authorize`
 - Local HTTP server on port 9876 receives callback with authorization code
 - Exchanges code for access token + refresh token
-- Stores in `~/.config/agent-skills/config.json`
+- Stores in `~/.config/overskill/config.json`
 - Before each API call, checks token expiry and refreshes if needed
 
 ### API Authentication
@@ -222,4 +222,4 @@ When testing CLI:
 - `.skills.yaml` - Project config (committed)
 - `.skills.lock` - Version lock (committed)
 - `.skills/` - Installed skills directory (not committed)
-- `~/.config/agent-skills/config.json` - Global CLI config (user's home directory)
+- `~/.config/overskill/config.json` - Global CLI config (user's home directory)

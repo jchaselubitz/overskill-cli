@@ -1,6 +1,6 @@
 # Skill Hub
 
-CLI and Supabase functions for managing agent skills across repositories.
+CLI and Supabase functions for Overskill - manage skills across repositories.
 
 ## Requirements
 
@@ -25,11 +25,11 @@ npm run build
 node dist/index.js --help
 ```
 
-Optional: link the CLI for a global `skills` command:
+Optional: link the CLI for a global `skill` command:
 
 ```bash
 npm link
-skills --help
+skill --help
 ```
 
 ### Backend (Supabase Functions)
@@ -53,25 +53,25 @@ supabase functions serve oauth --no-verify-jwt
 1. Initialize a local-only project:
 
 ```bash
-skills init
+skill init
 ```
 
 2. Create a new skill:
 
 ```bash
-skills new my-skill
+skill new my-skill
 ```
 
 3. Add skills from local cache:
 
 ```bash
-skills add my-skill
+skill add my-skill
 ```
 
 4. Import skills from other tools (Claude, Cursor, Codex):
 
 ```bash
-skills import
+skill import
 ```
 
 ### Cloud Workflow
@@ -79,39 +79,39 @@ skills import
 1. Configure the API URL:
 
 ```bash
-skills config api_url https://your-domain.example/api
+skill config api_url https://your-domain.example/api
 ```
 
 2. Initialize with cloud registry:
 
 ```bash
-skills init --cloud --registry your-registry
+skill init --cloud --registry your-registry
 ```
 
 3. Log in:
 
 ```bash
-skills login
+skill login
 ```
 
 4. Add and sync skills:
 
 ```bash
-skills add my-skill
-skills sync
+skill add my-skill
+skill sync
 ```
 
 ## Commands
 
 ### Configuration
 
-- `skills config <key> [value]` - Get or set config (`api_url`, `editor`, `install_path`)
-- `skills config show` - Show all config
-- `skills config logout` - Clear authentication tokens
+- `skill config <key> [value]` - Get or set config (`api_url`, `editor`, `install_path`)
+- `skill config show` - Show all config
+- `skill config logout` - Clear authentication tokens
 
 ### Project Setup
 
-- `skills init [options]` - Initialize `.skills.yaml` in current directory
+- `skill init [options]` - Initialize `.skills.yaml` in current directory
   - `--cloud` - Include a cloud registry source
   - `-u, --url <url>` - API URL for cloud registry (requires `--cloud`)
   - `-r, --registry <slug>` - Cloud registry slug (requires `--cloud`)
@@ -119,11 +119,11 @@ skills sync
 
 ### Authentication
 
-- `skills login [--manual]` - Authenticate with cloud registry (browser flow or manual code entry)
+- `skill login [--manual]` - Authenticate with cloud registry (browser flow or manual code entry)
 
 ### Skill Creation & Management
 
-- `skills new <slug> [options]` - Create a new skill in local registry
+- `skill new <slug> [options]` - Create a new skill in local registry
   - `-n, --name <name>` - Display name
   - `-d, --description <desc>` - Description
   - `-t, --tags <tags>` - Comma-separated tags
@@ -136,7 +136,7 @@ skills sync
   - `--no-add` - Skip adding to current project
   - `--no-sync` - Skip automatic sync
 
-- `skills publish <slug> [options]` - Publish a new version of existing skill
+- `skill publish <slug> [options]` - Publish a new version of existing skill
   - `-v, --version <version>` - Explicit version number
   - `--patch` - Bump patch version (1.0.0 → 1.0.1)
   - `--minor` - Bump minor version (1.0.0 → 1.1.0)
@@ -145,7 +145,7 @@ skills sync
   - `--content <file>` - Read content from file
   - `--no-editor` - Skip editor, use current content
 
-- `skills import [path] [options]` - Import skills from other AI tools
+- `skill import [path] [options]` - Import skills from other AI tools
   - `[path]` - Custom path to scan (optional)
   - `-f, --force` - Overwrite existing skills
   - `--add` - Add imported skills to `.skills.yaml`
@@ -155,38 +155,38 @@ skills sync
 
 ### Project Operations
 
-- `skills add [slugs...] [options]` - Add skills to project
+- `skill add [slugs...] [options]` - Add skills to project
   - Interactive mode if no slugs provided (checkbox selection)
   - `-v, --version <constraint>` - Version constraint (e.g., `>=1.0.0`, `^2.0.0`)
   - `--no-sync` - Skip automatic sync after adding
 
-- `skills remove <slugs...>` - Remove skills from project
+- `skill remove <slugs...>` - Remove skills from project
 
-- `skills sync [options]` - Sync configured skills to install directory
+- `skill sync [options]` - Sync configured skills to install directory
   - `-f, --force` - Force re-install even if unchanged
 
-- `skills update [slug] [--check]` - Update to latest versions
+- `skill update [slug] [--check]` - Update to latest versions
 
 ### Discovery & Information
 
-- `skills list [options]` - List available skills
+- `skill list [options]` - List available skills
   - `--installed` - Show only installed skills in current project
   - `--local` - Show only local registry skills
 
-- `skills search <query> [options]` - Search for skills
+- `skill search <query> [options]` - Search for skills
   - `-t, --tags <tags>` - Filter by tags
   - `-c, --compat <compat>` - Filter by compatibility
 
-- `skills info <slug> [options]` - Show detailed skill information
+- `skill info <slug> [options]` - Show detailed skill information
   - `-v, --version <version>` - Show info for specific version
 
 ### Editing & Validation
 
-- `skills edit <slug>` - Edit a local skill using configured editor
+- `skill edit <slug>` - Edit a local skill using configured editor
 
-- `skills diff <slug>` - Show differences between local and registry versions
+- `skill diff <slug>` - Show differences between local and registry versions
 
-- `skills validate [slug]` - Validate skill files (validates all if no slug provided)
+- `skill validate [slug]` - Validate skill files (validates all if no slug provided)
 
 ## Project Files
 
@@ -197,41 +197,41 @@ skills sync
 
 ## Local Registry
 
-Skills are cached locally in `~/.local/share/agent-skills/cache/` (Linux/macOS) or equivalent on Windows. The local registry supports:
+Skills are cached locally in `~/.local/share/overskill/cache/` (Linux/macOS) or equivalent on Windows. The local registry supports:
 
-- Creating skills with `skills new`
-- Publishing versions with `skills publish`
-- Importing from other tools with `skills import`
+- Creating skills with `skill new`
+- Publishing versions with `skill publish`
+- Importing from other tools with `skill import`
 - Version resolution with semver constraints
 
 # Coming for Cloud
 
 ### Commands for Cloud
 
-- `skills login [--manual]` - Authenticate with cloud registry (browser flow or manual code entry)
+- `skill login [--manual]` - Authenticate with cloud registry (browser flow or manual code entry)
 
-- `skills config api_url <url>` - Set the API URL for the cloud registry
+- `skill config api_url <url>` - Set the API URL for the cloud registry
 
-- `skills config registry <slug>` - Set the registry slug for the cloud registry
+- `skill config registry <slug>` - Set the registry slug for the cloud registry
 
-- `skills config install_path <path>` - Set the install path for the cloud registry
+- `skill config install_path <path>` - Set the install path for the cloud registry
 
 ### Publishing & Sharing
 
-- `skills push [slug] [--create ...]` - Publish changes to cloud registry
+- `skill push [slug] [--create ...]` - Publish changes to cloud registry
 
-- `skills bundle [slugs...] [options]` - Bundle skills into single markdown file
+- `skill bundle [slugs...] [options]` - Bundle skills into single markdown file
   - `[slugs...]` - Specific skills to bundle (bundles all if omitted)
   - `-o, --output <path>` - Output file path (default: `skills-bundle.md`)
 
-- `skills delete <skill>` - Delete skill from registry
-  - Local: `skills delete <slug>`
-  - Remote: `skills delete <registry>/<slug>`
+- `skill delete <skill>` - Delete skill from registry
+  - Local: `skill delete <slug>`
+  - Remote: `skill delete <registry>/<slug>`
 
 ### Registry Management
 
-- `skills registry <subcommand>` - Manage registries and invitations
-  - See `skills registry --help` for subcommands
+- `skill registry <subcommand>` - Manage registries and invitations
+  - See `skill registry --help` for subcommands
 
 
 

@@ -505,9 +505,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"agent-skills@workspace:.":
+"overskill@workspace:.":
   version: 0.0.0-use.local
-  resolution: "agent-skills@workspace:."
+  resolution: "overskill@workspace:."
   dependencies:
     "@inquirer/prompts": "npm:^8.2.0"
     "@types/node": "npm:^20.0.0"

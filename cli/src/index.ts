@@ -25,8 +25,8 @@ import { importCommand } from './commands/import.js';
 const program = new Command();
 
 program
-  .name('skills')
-  .description('CLI tool for managing agent skills across repositories')
+  .name('skill')
+  .description('Overskill CLI - manage skills across repositories')
   .version('0.1.0');
 
 // Register all commands

@@ -8,7 +8,7 @@ import { getConfigPath } from '../auth.js';
 
 /**
  * Get the root directory of the local registry.
- * Located alongside the CLI config file (e.g., ~/.config/agent-skills/registry/)
+ * Located alongside the CLI config file (e.g., ~/.config/overskill/registry/)
  */
 export function getRoot(): string {
   const configPath = getConfigPath();

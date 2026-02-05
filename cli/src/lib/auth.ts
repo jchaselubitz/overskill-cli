@@ -2,7 +2,7 @@ import Conf from "conf";
 import type { CLIConfig } from "../types.js";
 
 const config = new Conf<CLIConfig>({
-  projectName: "agent-skills",
+  projectName: "overskill",
   defaults: {},
 });
 

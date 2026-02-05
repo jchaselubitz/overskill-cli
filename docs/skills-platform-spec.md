@@ -2,7 +2,7 @@
 
 ## Overview
 
-Build a platform that lets developers store, version, share, and sync reusable "agent skills" (markdown instruction files) across multiple repositories and multiple AI coding agents (Claude Code, Cursor, Codex, etc.).
+Build Overskill - a platform that lets developers store, version, share, and sync reusable skills (markdown instruction files) across multiple repositories and multiple AI coding agents (Claude Code, Cursor, Codex, etc.).
 
 The MVP consists of:
 
@@ -1097,7 +1097,7 @@ skills-cli/
 
 ```json
 {
-  "name": "agent-skills",
+  "name": "overskill",
   "version": "0.1.0",
   "bin": { "skills": "./dist/index.js" },
   "dependencies": {
@@ -1121,7 +1121,7 @@ Use `yarn` as the package manager (per user preference).
 
 ### 6.3 Authentication & Token Storage
 
-Use the `conf` package to store credentials in `~/.config/agent-skills/config.json`:
+Use the `conf` package to store credentials in `~/.config/overskill/config.json`:
 
 ```json
 {
@@ -1201,7 +1201,7 @@ skills:
 2. Start a temporary local HTTP server on port 9876
 3. Wait for the OAuth redirect with the authorization code
 4. Exchange the code for tokens via `POST /oauth/token`
-5. Store tokens in `~/.config/agent-skills/config.json`
+5. Store tokens in `~/.config/overskill/config.json`
 6. Print "Logged in as <username>"
 
 Alternative flow for environments where browser redirect doesn't work:
@@ -1373,10 +1373,10 @@ Get or set global CLI configuration:
 skills config api_url                              # get
 skills config api_url https://xyz.supabase.co/...  # set
 skills config editor vim                           # set preferred editor
-skills config install_path .agent-skills           # default install path for new repos
+skills config install_path .skills                 # default install path for new repos
 ```
 
-Stored in `~/.config/agent-skills/config.json`.
+Stored in `~/.config/overskill/config.json`.
 
 #### `skills registry members`
 

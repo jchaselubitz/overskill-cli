@@ -1,10 +1,10 @@
 {
-  "name": "agent-skills",
+  "name": "overskill",
   "version": "0.1.0",
-  "description": "CLI tool for managing agent skills across repositories",
+  "description": "Overskill CLI - manage skills across repositories",
   "main": "./dist/index.js",
   "bin": {
-    "skills": "./dist/index.js"
+    "skill": "./dist/index.js"
   },
   "type": "module",
   "scripts": {

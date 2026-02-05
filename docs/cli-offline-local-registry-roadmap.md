@@ -310,7 +310,7 @@ Behavior:
 
 ```bash
 $ skills cache path
-/Users/jake/.config/agent-skills/registry
+/Users/jake/.config/overskill/registry
 
 $ skills cache list
 3 skills cached:

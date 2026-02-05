@@ -159,7 +159,7 @@ export interface InvitationResponse {
   expires_at: string;
 }
 
-// CLI config types (stored in ~/.config/agent-skills/)
+// CLI config types (stored in ~/.config/overskill/)
 export interface CLIConfig {
   api_url?: string;
   api_key?: string;
