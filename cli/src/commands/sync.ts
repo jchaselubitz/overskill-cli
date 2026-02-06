@@ -154,6 +154,11 @@ export const syncCommand = new Command('sync')
       // Generate SKILLS_INDEX.md
       indexGen.writeIndex(skills);
 
+      // Update agent config files with skills discovery section
+      fs.updateClaudeMd(skillsConfig.install_path);
+      fs.updateAgentsMd(skillsConfig.install_path);
+      fs.updateCursorRules(skillsConfig.install_path);
+
       // Write lockfile
       lockfile.writeLockfile(lockfile.createLockfile(lockedSkills));
 

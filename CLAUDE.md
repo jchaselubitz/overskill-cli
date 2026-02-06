@@ -78,7 +78,8 @@ CLI/MCP Client → Edge Functions (Deno/TS) → Supabase Auth (JWT) → Postgres
 - `.skills.lock` tracks exact versions and SHA256 hashes (like package-lock.json)
 - `SKILLS_INDEX.md` is auto-generated in install directory for AI agents to discover skills
 - Skills are installed to `.skills/` directory by default (not committed)
-- Authentication tokens stored in `~/.config/overskill/config.json` using `conf` package
+- Global config directory: `~/.overskill/` (works on macOS, Linux, Windows)
+- Authentication tokens stored in `~/.overskill/config.json`
 
 ## Common Workflows
 
@@ -185,7 +186,7 @@ CLI should map these to friendly messages, not raw JSON errors.
 - Login via OAuth flow: opens browser to `/oauth/authorize`
 - Local HTTP server on port 9876 receives callback with authorization code
 - Exchanges code for access token + refresh token
-- Stores in `~/.config/overskill/config.json`
+- Stores in `~/.overskill/config.json` (cross-platform: macOS, Linux, Windows)
 - Before each API call, checks token expiry and refreshes if needed
 
 ### API Authentication
@@ -222,4 +223,4 @@ When testing CLI:
 - `.skills.yaml` - Project config (committed)
 - `.skills.lock` - Version lock (committed)
 - `.skills/` - Installed skills directory (not committed)
-- `~/.config/overskill/config.json` - Global CLI config (user's home directory)
+- `~/.overskill/config.json` - Global CLI config (cross-platform: macOS, Linux, Windows)

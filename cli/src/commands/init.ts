@@ -1,6 +1,7 @@
 import { Command } from 'commander';
 import * as path from 'path';
 import chalk from 'chalk';
+import { confirm } from '@inquirer/prompts';
 import * as config from '../lib/config.js';
 import * as auth from '../lib/auth.js';
 import { updateGitignore, ensureDir } from '../lib/fs.js';
@@ -18,7 +19,7 @@ export const initCommand = new Command('init')
       // Check if already initialized
       if (config.configExists()) {
         console.log(chalk.yellow('Skills configuration already exists in this directory.'));
-        console.log('Use `skills sync` to sync skills or edit .skills.yaml manually.');
+        console.log('Use `skill sync` to sync skills or edit .skills.yaml manually.');
         return;
       }
 
@@ -66,8 +67,16 @@ export const initCommand = new Command('init')
       // Ensure local registry structure exists
       ensureRegistryStructure();
 
-      // Update .gitignore
-      updateGitignore(installPath);
+      const trackInGit = await confirm({
+        message:
+          'Track skills in git? Tracking skills in git allows coding agents that clone your repo to see the included skills. If your skills include private information, respond "no".',
+        default: false,
+      });
+
+      // Update .gitignore if user does not want to track skills in git
+      if (!trackInGit) {
+        updateGitignore(installPath);
+      }
 
       console.log(chalk.green('Initialized skills configuration!'));
       console.log('');
@@ -76,15 +85,16 @@ export const initCommand = new Command('init')
       console.log(`  ${chalk.cyan(installPath + '/')} - Skills install directory`);
       console.log('');
       console.log('Next steps:');
-      console.log(`  ${chalk.cyan('skills new <slug>')}      Create a new skill`);
-      console.log(`  ${chalk.cyan('skills add <slug>')}      Add an existing skill from cache`);
-      console.log(`  ${chalk.cyan('skills sync')}            Install skills to ${installPath}/`);
+      console.log(`  ${chalk.cyan('skill import')}          Import skills from Claude, Cursor, etc.`);
+      console.log(`  ${chalk.cyan('skill new <slug>')}      Create a new skill`);
+      console.log(`  ${chalk.cyan('skill add <slug>')}      Add an existing skill from cache`);
+      console.log(`  ${chalk.cyan('skill sync')}            Install skills to ${installPath}/`);
 
       if (options.cloud) {
         console.log('');
         console.log('Cloud registry configured:');
-        console.log(`  ${chalk.cyan('skills login')}           Authenticate with cloud registry`);
-        console.log(`  ${chalk.cyan('skills cache pull')}      Pull skills from cloud to local cache`);
+        console.log(`  ${chalk.cyan('skill login')}           Authenticate with cloud registry`);
+        console.log(`  ${chalk.cyan('skill cache pull')}      Pull skills from cloud to local cache`);
       }
     } catch (error) {
       console.error(chalk.red('Error:'), error instanceof Error ? error.message : error);

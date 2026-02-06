@@ -437,8 +437,7 @@ export const importCommand = new Command('import')
   .description('Import skills from common AI tool locations (Claude, Cursor, Codex)')
   .argument('[path]', 'Custom path to scan for skills')
   .option('-f, --force', 'Overwrite existing skills')
-  .option('--add', 'Add imported skills to .skills.yaml')
-  .option('--sync', 'Run sync after importing (requires --add)')
+  .option('--sync', 'Run sync after importing')
   .option('--dry-run', 'Show what would be imported without making changes')
   .option('-y, --yes', 'Import all found skills without prompting')
   .action(async (customPath: string | undefined, options) => {
@@ -497,7 +496,7 @@ export const importCommand = new Command('import')
           console.log(`  ${exists ? chalk.green('✓') : chalk.gray('✗')} ${loc.path}`);
         }
         console.log('');
-        console.log(`Tip: Use ${chalk.cyan('skills import <path>')} to import from a custom location.`);
+        console.log(`Tip: Use ${chalk.cyan('skill import <path>')} to import from a custom location.`);
         process.exit(0);
       }
 
@@ -561,11 +560,11 @@ export const importCommand = new Command('import')
         }
       }
 
-      // Add to project if requested
-      if (options.add && successful.length > 0) {
+      // Add to project
+      if (successful.length > 0) {
         if (!config.configExists()) {
           console.log('');
-          console.log(chalk.yellow('Warning: No .skills.yaml found. Run `skills init` first to add skills to project.'));
+          console.log(chalk.yellow('Warning: No .skills.yaml found. Run `skill init` first to add skills to project.'));
         } else {
           const skillsConfig = config.readConfig();
           let added = 0;
@@ -588,7 +587,7 @@ export const importCommand = new Command('import')
               console.log('');
               console.log('Running sync...');
               const { syncCommand } = await import('./sync.js');
-              await syncCommand.parseAsync(['node', 'skills', 'sync']);
+              await syncCommand.parseAsync(['node', 'skill', 'sync']);
             }
           }
         }
@@ -597,11 +596,9 @@ export const importCommand = new Command('import')
       // Show next steps
       console.log('');
       console.log('Next steps:');
-      if (!options.add && successful.length > 0) {
-        console.log(`  ${chalk.cyan('skills add <slug>')}      Add a skill to current project`);
-      }
-      console.log(`  ${chalk.cyan('skills list --local')}   View all local skills`);
-      console.log(`  ${chalk.cyan('skills info <slug>')}    View skill details`);
+      console.log(`  ${chalk.cyan('skill sync')}            Install skills to your project`);
+      console.log(`  ${chalk.cyan('skill list --local')}   View all local skills`);
+      console.log(`  ${chalk.cyan('skill info <slug>')}    View skill details`);
 
     } catch (error) {
       console.error(chalk.red('Error:'), error instanceof Error ? error.message : error);

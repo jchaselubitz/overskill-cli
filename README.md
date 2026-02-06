@@ -111,7 +111,7 @@ skill sync
 
 ### Project Setup
 
-- `skill init [options]` - Initialize `.skills.yaml` in current directory
+- `skill init [options]` - Initialize `.skills.yaml` in current directory. Also configures AI agent integration files (see [AI Agent Integration](#ai-agent-integration)).
   - `--cloud` - Include a cloud registry source
   - `-u, --url <url>` - API URL for cloud registry (requires `--cloud`)
   - `-r, --registry <slug>` - Cloud registry slug (requires `--cloud`)
@@ -162,7 +162,7 @@ skill sync
 
 - `skill remove <slugs...>` - Remove skills from project
 
-- `skill sync [options]` - Sync configured skills to install directory
+- `skill sync [options]` - Sync configured skills to install directory. Also updates AI agent integration files (see [AI Agent Integration](#ai-agent-integration)).
   - `-f, --force` - Force re-install even if unchanged
 
 - `skill update [slug] [--check]` - Update to latest versions
@@ -194,6 +194,28 @@ skill sync
 - `.skills.lock` - Version lock file (like package-lock.json)
 - `.skills/` - Installed skills directory (default, configurable)
 - `SKILLS_INDEX.md` - Generated index of installed skills for AI discovery
+
+## AI Agent Integration
+
+When you run `skill init` or `skill sync`, Overskill automatically configures your project so that AI coding agents discover and use your installed skills. It updates the following files:
+
+- **`CLAUDE.md`** — Claude Code reads this file automatically. Overskill adds a managed section that points Claude to `SKILLS_INDEX.md`.
+- **`AGENTS.md`** — Read by Codex and other agents. Same managed section as `CLAUDE.md`.
+- **`.cursor/rules/overskill.mdc`** — Cursor rule with `alwaysApply: true` that tells Cursor to read the skills index.
+
+The `CLAUDE.md` and `AGENTS.md` sections are wrapped in `<!-- overskill-start -->` / `<!-- overskill-end -->` comment markers so they can be updated idempotently without affecting the rest of the file. The Cursor rule is a standalone file that gets overwritten on each sync.
+
+## Why Overskill over AI Agent Plugins?
+
+Tools like Claude Code offer built-in plugin systems for distributing skills. Overskill takes a different approach — skills live in your repo as plain files — and this comes with meaningful advantages:
+
+- **Agent-agnostic**: Overskill skills work with Claude Code, Cursor, Codex, Windsurf, and any agent that can read markdown. Plugins lock you into a single tool.
+- **Transparent and auditable**: Skills are visible files in your project. You can read, diff, and review them like any other code. Plugin skills are buried in global cache directories.
+- **Version-locked per repo**: `.skills.lock` pins exact versions and hashes to each commit, giving you reproducible builds. Plugins are installed globally or per-user with no per-repo lockfile.
+- **Team-friendly**: `skill sync` works like `npm install` — clone the repo, run one command, and everyone has the same skills at the same versions. Plugins require each developer to install them separately.
+- **Full control over activation**: You decide how and when skills are loaded via `CLAUDE.md`, `.cursor/rules`, or `AGENTS.md`. Plugin activation is controlled by the agent vendor.
+- **Works offline**: Once synced, skills are local files with no runtime dependency on external services.
+- **No vendor dependency**: Your skills aren't tied to a plugin API that could change or be deprecated. They're markdown files — the most durable format there is.
 
 ## Local Registry
 
