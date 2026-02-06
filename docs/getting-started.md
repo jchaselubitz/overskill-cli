@@ -11,6 +11,7 @@ npm install -g overskill
 ### Homebrew
 
 ```bash
+brew tap jchaselubitz/tap
 brew install overskill
 ```
 

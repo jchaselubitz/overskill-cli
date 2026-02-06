@@ -29,6 +29,10 @@ Overskill maintains a **global registry** on your machine (in `~/.overskill/regi
 # Install
 npm install -g overskill
 
+# Or install with Homebrew
+brew tap jchaselubitz/tap
+brew install overskill
+  
 # Initialize in a project
 cd your-project
 skill init
