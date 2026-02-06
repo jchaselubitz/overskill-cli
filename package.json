@@ -1,6 +1,6 @@
 {
   "name": "overskill",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Overskill CLI - manage skills across repositories",
   "main": "./dist/index.js",
   "bin": {
@@ -22,8 +22,16 @@
     "cursor",
     "codex"
   ],
-  "author": "",
+  "author": "jchaselubitz",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jchaselubitz/overskill-cli.git"
+  },
+  "homepage": "https://github.com/jchaselubitz/overskill-cli",
+  "bugs": {
+    "url": "https://github.com/jchaselubitz/overskill-cli/issues"
+  },
   "dependencies": {
     "@inquirer/prompts": "^8.2.0",
     "chalk": "^5.3.0",

@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 import { initCommand } from './commands/init.js';
 import { loginCommand } from './commands/login.js';
 import { syncCommand } from './commands/sync.js';
@@ -22,12 +25,16 @@ import { newCommand } from './commands/new.js';
 import { publishCommand } from './commands/publish.js';
 import { importCommand } from './commands/import.js';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const pkg = JSON.parse(readFileSync(join(__dirname, '..', 'package.json'), 'utf-8'));
+
 const program = new Command();
 
 program
   .name('skill')
   .description('Overskill CLI - manage skills across repositories')
-  .version('0.1.0');
+  .version(pkg.version);
 
 // Register all commands
 program.addCommand(initCommand);

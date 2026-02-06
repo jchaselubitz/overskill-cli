@@ -32,6 +32,7 @@ npm run build
 
 2. Run the CLI:
 
+
 ```bash
 node dist/index.js --help
 ```
