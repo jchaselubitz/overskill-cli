@@ -1,0 +1,49 @@
+name: Update Homebrew Tap
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  update-tap:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get release version
+        id: version
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for npm publish
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          for i in $(seq 1 30); do
+            if npm view overskill@"$VERSION" version 2>/dev/null; then
+              echo "Found version $VERSION on npm"
+              exit 0
+            fi
+            echo "Waiting for npm publish... (attempt $i/30)"
+            sleep 10
+          done
+          echo "Timed out waiting for npm publish"
+          exit 1
+
+      - name: Get tarball SHA256
+        id: sha
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          URL="https://registry.npmjs.org/overskill/-/overskill-${VERSION}.tgz"
+          SHA=$(curl -sL "$URL" | shasum -a 256 | cut -d' ' -f1)
+          echo "sha256=$SHA" >> "$GITHUB_OUTPUT"
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+
+      - name: Update Homebrew formula
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          repository: jchaselubitz/homebrew-tap
+          event-type: update-formula
+          client-payload: |
+            {
+              "version": "${{ steps.version.outputs.version }}",
+              "url": "${{ steps.sha.outputs.url }}",
+              "sha256": "${{ steps.sha.outputs.sha256 }}"
+            }
