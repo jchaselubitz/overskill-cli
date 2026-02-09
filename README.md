@@ -1,6 +1,6 @@
 # Overskill
 
-[Overskill](https://overskill.jacobchaselubitz.com/)
+[Visit the Overskill Website](https://overskill.jacobchaselubitz.com/)
 
 Overskill is a skills manager for AI coding agents. It gives you a single place to write, version, and share the instruction files that guide tools like Claude Code, Cursor, Codex, and Windsurf — then apply them to any repository with one command.
 
