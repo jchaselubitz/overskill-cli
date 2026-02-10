@@ -24,6 +24,7 @@ import { updateCommand } from './commands/update.js';
 import { newCommand } from './commands/new.js';
 import { publishCommand } from './commands/publish.js';
 import { importCommand } from './commands/import.js';
+import { feedbackCommand } from './commands/feedback.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -57,5 +58,6 @@ program.addCommand(updateCommand);
 program.addCommand(newCommand);
 program.addCommand(publishCommand);
 program.addCommand(importCommand);
+program.addCommand(feedbackCommand);
 
 program.parse();

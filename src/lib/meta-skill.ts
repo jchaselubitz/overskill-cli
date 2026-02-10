@@ -2,7 +2,11 @@
  * The meta-skill content that teaches AI agents how to use the skills system.
  * This is bundled with the CLI and installed to _system/SKILL.md during sync.
  */
-export const META_SKILL_CONTENT = `# Skills System — Agent Instructions
+export const META_SKILL_CONTENT = `
+---
+name: Overskill skills manager — Agent Instructions
+description: This file explains how to use the Overskill skills manager to create, version, and sync skills to your projects.
+---
 
 You have access to a skills system that provides curated instruction files
 to guide your work. This file explains how to use it.
@@ -32,28 +36,28 @@ If the user asks you to manage skills, you have these CLI commands available.
 Run them in the terminal:
 
 ### Viewing Available Skills
-- \`skills list\` — Show all skills available in remote registries
-- \`skills list --installed\` — Show skills installed in this project
-- \`skills search <query>\` — Search for skills by keyword
-- \`skills info <name>\` — Show full details about a skill
+- \`skill list\` — Show all skills available in remote registries
+- \`skill list --installed\` — Show skills installed in this project
+- \`skill search <query>\` — Search for skills by keyword
+- \`skill info <name>\` — Show full details about a skill
 
 ### Installing and Removing
-- \`skills add <name>\` — Add a skill to this project and sync it
-- \`skills remove <name>\` — Remove a skill from this project
-- \`skills sync\` — Re-sync all installed skills from remote
-- \`skills update\` — Pull latest versions of all skills
+- \`skill add <name>\` — Add a skill to this project and sync it
+- \`skill remove <name>\` — Remove a skill from this project
+- \`skill sync\` — Re-sync all installed skills from remote
+- \`skill update\` — Pull latest versions of all skills
 
 ### Editing and Publishing
-- \`skills edit <name>\` — Open a skill for editing in the default editor
-- \`skills push <name>\` — Publish local edits to the remote registry
-- \`skills diff <name>\` — See what changed between local and remote
-- \`skills validate <name>\` — Check skill file structure
+- \`skill edit <name>\` — Open a skill for editing in the default editor
+- \`skill push <name>\` — Publish local edits to the remote registry
+- \`skill diff <name>\` — See what changed between local and remote
+- \`skill validate <name>\` — Check skill file structure
 
 ### Creating New Skills
 To create a new skill:
 1. Write a SKILL.md file following the format of existing skills
-2. Run \`skills push <name> --from-stdin\` piping in the content, or
-3. Create the file in the skills folder and run \`skills push <name>\`
+2. Run \`skill push <name> --from-stdin\` piping in the content, or
+3. Create the file in the skills folder and run \`skill push <name>\`
 
 A good SKILL.md includes:
 - A clear title (# heading)

@@ -1,35 +1,35 @@
-import { Command } from 'commander';
-import chalk from 'chalk';
-import ora from 'ora';
-import * as config from '../lib/config.js';
-import * as localRegistry from '../lib/local-registry/index.js';
-import * as lockfile from '../lib/lockfile.js';
-import * as fs from '../lib/fs.js';
-import * as indexGen from '../lib/index-gen.js';
-import { META_SKILL_CONTENT } from '../lib/meta-skill.js';
-import type { SkillMeta, LockedSkill } from '../types.js';
+import { Command } from "commander";
+import chalk from "chalk";
+import ora from "ora";
+import * as config from "../lib/config.js";
+import * as localRegistry from "../lib/local-registry/index.js";
+import * as lockfile from "../lib/lockfile.js";
+import * as fs from "../lib/fs.js";
+import * as indexGen from "../lib/index-gen.js";
+import { META_SKILL_CONTENT } from "../lib/meta-skill.js";
+import type { SkillMeta, LockedSkill } from "../types.js";
 
-export const syncCommand = new Command('sync')
-  .description('Sync all configured skills from local registry to project')
-  .option('-f, --force', 'Force re-install even if unchanged')
+export const syncCommand = new Command("sync")
+  .description("Sync all configured skills from local registry to project")
+  .option("-f, --force", "Force re-install even if unchanged")
   .action(async (options) => {
     try {
       // Check if initialized
       if (!config.configExists()) {
-        console.log(chalk.red('Error: Not in a skills project.'));
-        console.log(`Run ${chalk.cyan('skills init')} first.`);
+        console.log(chalk.red("Error: Not in a skills project."));
+        console.log(`Run ${chalk.cyan("skill init")} first.`);
         process.exit(1);
       }
 
       const skillsConfig = config.readConfig();
 
       if (skillsConfig.skills.length === 0) {
-        console.log(chalk.yellow('No skills configured.'));
-        console.log(`Run ${chalk.cyan('skills add <slug>')} to add skills.`);
+        console.log(chalk.yellow("No skills configured."));
+        console.log(`Run ${chalk.cyan("skill add <slug>")} to add skills.`);
         return;
       }
 
-      const spinner = ora('Syncing skills...').start();
+      const spinner = ora("Syncing skills...").start();
 
       // Ensure install directory exists
       fs.ensureDir(config.getInstallPath());
@@ -52,7 +52,7 @@ export const syncCommand = new Command('sync')
         if (!localRegistry.skillExists(slug)) {
           errors.push({
             slug,
-            error: `Not found in local cache. Run 'skills new ${slug}' or 'skills cache import'`,
+            error: `Not found in local cache. Run ${chalk.cyan("skill new ${slug}")} or ${chalk.cyan("skill cache import")}`,
           });
           continue;
         }
@@ -81,7 +81,7 @@ export const syncCommand = new Command('sync')
           errors.push({
             slug,
             error: constraint
-              ? `No cached version satisfies '${constraint}'. Available: ${availableVersions.join(', ')}`
+              ? `No cached version satisfies '${constraint}'. Available: ${availableVersions.join(", ")}`
               : `No versions cached`,
           });
           continue;
@@ -106,9 +106,9 @@ export const syncCommand = new Command('sync')
 
         if (hasChanged) {
           // Build metadata for project install
-          const meta: Omit<SkillMeta, 'sha256'> = {
+          const meta: Omit<SkillMeta, "sha256"> = {
             slug,
-            registry: 'local',
+            registry: "local",
             version: resolvedVersion,
             name: skillData.meta.name,
             description: skillData.meta.description,
@@ -119,13 +119,13 @@ export const syncCommand = new Command('sync')
           // Write skill to project
           fs.writeSkill(
             {
-              registry: 'local',
+              registry: "local",
               slug,
               version: resolvedVersion,
               content: skillData.content,
               sha256: skillData.sha256,
             },
-            meta
+            meta,
           );
           updated++;
 
@@ -142,7 +142,7 @@ export const syncCommand = new Command('sync')
         // Add to lock
         lockedSkills.push({
           slug,
-          registry: 'local',
+          registry: "local",
           version: resolvedVersion,
           sha256: skillData.sha256,
         });
@@ -162,25 +162,28 @@ export const syncCommand = new Command('sync')
       // Write lockfile
       lockfile.writeLockfile(lockfile.createLockfile(lockedSkills));
 
-      spinner.succeed('Sync complete!');
+      spinner.succeed("Sync complete!");
 
       // Print summary
       const totalSuccess = updated + unchanged;
-      console.log('');
+      console.log("");
       console.log(`Synced ${chalk.cyan(totalSuccess)} skills.`);
       console.log(`  ${chalk.green(updated)} updated`);
       console.log(`  ${chalk.gray(unchanged)} unchanged`);
 
       // Print errors if any
       if (errors.length > 0) {
-        console.log('');
+        console.log("");
         console.log(chalk.red(`${errors.length} skill(s) failed:`));
         for (const error of errors) {
-          console.log(`  ${chalk.red('✗')} ${error.slug}: ${error.error}`);
+          console.log(`  ${chalk.red("✗")} ${error.slug}: ${error.error}`);
         }
       }
     } catch (error) {
-      console.error(chalk.red('Error:'), error instanceof Error ? error.message : error);
+      console.error(
+        chalk.red("Error:"),
+        error instanceof Error ? error.message : error,
+      );
       process.exit(1);
     }
   });
