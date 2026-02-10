@@ -2,7 +2,7 @@
 
 [Visit the Overskill Website](https://overskill.jacobchaselubitz.com/)
 
-Overskill is a AI coding agent skills manager that lest you keep skills in sync across repositories. It gives you a single place to write, version, and share the instruction files that guide tools like Claude Code, Cursor, Codex, and Windsurf — then apply them to any repository with one command.
+Overskill is a AI coding agent skills manager that lets you keep skills in sync across repositories. It gives you a single place to write, version, and share the instruction files that guide tools like Claude Code, Cursor, Codex, and Windsurf — then apply them to any repository with one command.
 
 **Why Overskill?**
 
