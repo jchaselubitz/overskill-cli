@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - **`skill open <slug>`**: New command that opens a skill in your configured editor from anywhere (no project required). Works globally by opening the skill's SKILL.md from the local registry.
+- **`skill rename <slug>`** New command that allows you to enter a new name for the skill. It changes both the slug and the skill name.
 - **Version comment in new skills**: `skill new` now adds `<!-- version: 1.0.0 -->` at the top of each new skill for reference.
 - **SKILL.md working copy in registry**: The local registry now maintains a readable `SKILL.md` file alongside `meta.yaml` for each skill, making `skill open` possible.
 - **Legacy migration**: Skills created with the old versioning system are automatically migrated (sha256 is read from versions.yaml into meta.yaml).
