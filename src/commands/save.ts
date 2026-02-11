@@ -7,9 +7,9 @@ import * as lockfile from '../lib/lockfile.js';
 import * as fs from '../lib/fs.js';
 import * as indexGen from '../lib/index-gen.js';
 
-export const updateCommand = new Command('update')
+export const saveCommand = new Command('save')
   .description('Save local skill changes back to the registry')
-  .argument('[slug]', 'Skill slug to update (optional, updates all modified if not provided)')
+  .argument('[slug]', 'Skill slug to save (optional, saves all modified if not provided)')
   .action(async (slug?: string) => {
     try {
       // Check if initialized
@@ -43,7 +43,7 @@ export const updateCommand = new Command('update')
 
         if (skillsToUpdate.length === 0) {
           console.log(chalk.yellow('No modified skills to update.'));
-          console.log(`Edit a skill with ${chalk.cyan('skill edit <slug>')} first, or specify a slug directly.`);
+          console.log(`Edit a skill with ${chalk.cyan('skill open <slug>')} first, or specify a slug directly.`);
           return;
         }
       }
@@ -102,7 +102,7 @@ export const updateCommand = new Command('update')
       // Regenerate index
       indexGen.regenerateIndex();
 
-      spinner.succeed(`Updated ${updated} skill(s) in registry`);
+      spinner.succeed(`Saved ${updated} skill(s) to registry`);
 
       // Print results
       for (const skillSlug of skillsToUpdate) {

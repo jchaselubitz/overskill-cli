@@ -259,10 +259,10 @@ export const newCommand = new Command("new")
         if (addedToProject) {
           console.log('Next steps:');
           console.log(
-            `  ${chalk.cyan(`skill edit ${slug}`)}      Edit the skill`,
+            `  ${chalk.cyan(`skill open ${slug}`)}      Open the skill in your editor`,
           );
           console.log(
-            `  ${chalk.cyan(`skill update ${slug}`)}    Save changes to registry`,
+            `  ${chalk.cyan(`skill save ${slug}`)}      Save changes to registry`,
           );
           console.log(
             `  ${chalk.cyan(`skill info ${slug}`)}      View skill details`,

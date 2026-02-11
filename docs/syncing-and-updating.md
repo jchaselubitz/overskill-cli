@@ -35,21 +35,21 @@ skill sync --force
 To see which skills have newer versions available without installing anything:
 
 ```bash
-skill update --check
+skill save --check
 ```
 
-## Updating skills
+## Saving skill changes
 
-To update all skills to their latest versions (respecting any version constraints in `.skills.yaml`):
+To save all modified skills back to the registry:
 
 ```bash
-skill update
+skill save
 ```
 
-To update a specific skill:
+To save a specific skill:
 
 ```bash
-skill update my-skill
+skill save my-skill
 ```
 
-After updating, the lockfile and installed files are updated automatically.
+After saving, the lockfile and installed files are updated automatically.

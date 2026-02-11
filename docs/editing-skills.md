@@ -5,15 +5,13 @@
 To open a skill in your configured editor:
 
 ```bash
-skill edit my-skill
+skill open my-skill
 ```
 
-This opens the `SKILL.md` file from the installed `.skills/` directory. When you save and close the editor, the skill is marked as locally modified.
-
-You can override the editor for a single command:
+This opens the `SKILL.md` file from the local registry. You can override the editor for a single command:
 
 ```bash
-skill edit my-skill -e vim
+skill open my-skill -e vim
 ```
 
 To set your default editor, see [Configuration](./configuration.md).
@@ -45,13 +43,13 @@ If you don't specify a version bump, the CLI will prompt you interactively.
 After publishing a new version, update the project that should use it:
 
 ```bash
-skill update my-skill
+skill save my-skill
 ```
 
-Or update all skills at once:
+Or save all modified skills at once:
 
 ```bash
-skill update
+skill save
 ```
 
 ## Viewing differences

@@ -8,7 +8,8 @@ All notable changes to this project will be documented in this file.
 - **Removed versioning system**: Skills no longer track semver versions in the registry. Instead, a version number is included as an HTML comment (`<!-- version: 1.0.0 -->`) at the top of each SKILL.md for reference only. The registry stores one copy of each skill (the latest).
 - **Simplified lockfile**: `.skills.lock` now only tracks `slug` and `sha256` (no version or registry fields).
 - **Simplified `.skills.yaml`**: Skill entries no longer have a `version` constraint field.
-- **Reworked `skill update`**: Now saves local project skill changes back to the registry. The flow is: edit a skill in your project, then run `skill update` to persist changes.
+- **Renamed `skill update` to `skill save`**: Saves local project skill changes back to the registry. The flow is: open a skill in your editor, then run `skill save` to persist changes.
+- **Removed `skill edit`**: Use `skill open` instead, which works globally without requiring a project.
 - **Simplified `skill sync`**: Now simply pulls the latest content for each skill from the local registry into the project.
 - **Simplified `skill publish`**: Now directly updates skill content in the local registry without version bumping.
 - **Reordered CLI commands**: Local/core commands appear first in help output; cloud-related commands are grouped at the bottom.

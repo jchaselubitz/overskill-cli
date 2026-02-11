@@ -4,10 +4,8 @@ sources:
 install_path: ".skills"
 skills:
   - slug: "zod-v4-patterns"
-  - slug: "expo-glass-effect"
   - slug: "gemini-api"
   - slug: "loading-button"
-  - slug: "rn-button-component"
-  - slug: "watermelondb"
   - slug: "edge-functions"
   - slug: "code-review"
+  - slug: "test"

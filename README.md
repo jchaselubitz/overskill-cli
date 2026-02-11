@@ -1,5 +1,7 @@
 # Overskill
 
+> **Upgrading from v1?** Run `skill upgrade` after installing v2 to migrate your local registry to the new format.
+
 [Visit the Overskill Website](https://overskill.jacobchaselubitz.com/)
 
 Overskill is a AI coding agent skills manager that lets you keep skills in sync across repositories. It gives you a single place to write, version, and sync the instruction files that guide tools like Claude Code, Cursor, Codex, and Windsurf — then apply them to any repository with one command.
@@ -47,6 +49,11 @@ skill new my-skill
 
 # Add skills to the project
 skill add my-skill
+
+# Modify a skill
+skill open my-skill    # opens in your editor
+skill save my-skill    # saves changes to the registry
+skill sync             # run in any project that uses this skill
 ```
 
 ## License

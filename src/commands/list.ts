@@ -5,13 +5,13 @@ import * as localRegistry from '../lib/local-registry/index.js';
 
 export const listCommand = new Command('list')
   .description('List skills')
-  .option('-i, --installed', 'List only installed skills in current project')
+  .option('-p, --project', 'List only skills in the current project')
   .option('-l, --local', 'List skills from local registry cache')
   .option('-t, --tags <tags>', 'Filter by tags (comma-separated)')
   .option('-c, --compat <compat>', 'Filter by compatibility (comma-separated)')
-  .action(async (options) => {
+  .action(async options => {
     try {
-      if (options.installed) {
+      if (options.project) {
         // List installed skills in current project
         if (!config.configExists()) {
           console.log(chalk.red('Error: Not in a skills project.'));
