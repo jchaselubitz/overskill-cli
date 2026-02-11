@@ -16,14 +16,14 @@ export const editCommand = new Command('edit')
       // Check if initialized
       if (!config.configExists()) {
         console.log(chalk.red('Error: Not in a skills project.'));
-        console.log(`Run ${chalk.cyan('skills init')} first.`);
+        console.log(`Run ${chalk.cyan('skill init')} first.`);
         process.exit(1);
       }
 
       // Check if skill exists locally
       if (!fs.skillExists(slug)) {
         console.log(chalk.red(`Error: Skill '${slug}' not found locally.`));
-        console.log(`Run ${chalk.cyan('skills sync')} first.`);
+        console.log(`Run ${chalk.cyan('skill sync')} first.`);
         process.exit(1);
       }
 
@@ -45,7 +45,7 @@ export const editCommand = new Command('edit')
         args = parsed.args;
       } catch (error) {
         console.error(chalk.red('Error:'), error instanceof Error ? error.message : error);
-        console.log(`Try setting a different editor with ${chalk.cyan('skills config editor <name>')}`);
+        console.log(`Try setting a different editor with ${chalk.cyan('skill config editor <name>')}`);
         process.exit(1);
       }
 
@@ -58,7 +58,7 @@ export const editCommand = new Command('edit')
 
           console.log('');
           console.log(chalk.green(`Edited ${slug} locally.`));
-          console.log(`Run ${chalk.cyan(`skills push ${slug}`)} to publish changes.`);
+          console.log(`Run ${chalk.cyan(`skill update ${slug}`)} to save changes to the registry.`);
         } else {
           console.log(chalk.yellow('Editor exited with non-zero code.'));
         }
@@ -66,7 +66,7 @@ export const editCommand = new Command('edit')
 
       child.on('error', (err) => {
         console.error(chalk.red(`Error opening editor: ${err.message}`));
-        console.log(`Try setting a different editor with ${chalk.cyan('skills config editor <name>')}`);
+        console.log(`Try setting a different editor with ${chalk.cyan('skill config editor <name>')}`);
         process.exit(1);
       });
     } catch (error) {

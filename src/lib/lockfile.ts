@@ -73,7 +73,7 @@ export function updateLockedSkill(skill: LockedSkill): void {
     lock = createLockfile([skill]);
   } else {
     const existingIndex = lock.skills.findIndex(
-      s => s.slug === skill.slug && s.registry === skill.registry
+      s => s.slug === skill.slug
     );
 
     if (existingIndex >= 0) {
@@ -91,17 +91,11 @@ export function updateLockedSkill(skill: LockedSkill): void {
 /**
  * Remove a skill from the lockfile
  */
-export function removeLockedSkill(slug: string, registry?: string): void {
+export function removeLockedSkill(slug: string): void {
   const lock = readLockfile();
   if (!lock) return;
 
-  if (registry) {
-    lock.skills = lock.skills.filter(
-      s => !(s.slug === slug && s.registry === registry)
-    );
-  } else {
-    lock.skills = lock.skills.filter(s => s.slug !== slug);
-  }
+  lock.skills = lock.skills.filter(s => s.slug !== slug);
 
   lock.locked_at = new Date().toISOString();
   writeLockfile(lock);
@@ -110,8 +104,8 @@ export function removeLockedSkill(slug: string, registry?: string): void {
 /**
  * Check if a skill has changed (compare hash)
  */
-export function hasSkillChanged(slug: string, registry: string, newHash: string): boolean {
+export function hasSkillChanged(slug: string, newHash: string): boolean {
   const locked = getLockedSkill(slug);
-  if (!locked || locked.registry !== registry) return true;
+  if (!locked) return true;
   return locked.sha256 !== newHash;
 }

@@ -8,27 +8,18 @@ import {
   getSkillDir,
   getSkillsDir,
   getMetaPath,
+  getSkillFilePath,
   ensureDir,
   skillExists as pathSkillExists,
   ensureRegistryStructure,
 } from './paths.js';
-import { writeObject, readObject, objectExists } from './objects.js';
-import {
-  addVersionEntry,
-  getVersionEntry,
-  getLatestVersion,
-  getAllVersions,
-  getVersionCount,
-  resolveVersion as resolveVersionInternal,
-  createLocalProvenance,
-} from './versions.js';
+import { writeObject, readObject } from './objects.js';
 import type {
   LocalSkillMeta,
-  PutVersionParams,
-  GetVersionResult,
+  PutSkillParams,
+  GetSkillResult,
   SkillSummary,
   SearchResult,
-  Provenance,
 } from './types.js';
 
 /**
@@ -42,7 +33,27 @@ export function readMeta(slug: string): LocalSkillMeta | null {
   }
 
   const content = fs.readFileSync(metaPath, 'utf-8');
-  return yaml.parse(content) as LocalSkillMeta;
+  const meta = yaml.parse(content) as LocalSkillMeta;
+
+  // Migration: if meta doesn't have sha256, try to read from legacy versions.yaml
+  if (!meta.sha256) {
+    const versionsPath = getSkillDir(slug) + '/versions.yaml';
+    if (fs.existsSync(versionsPath)) {
+      try {
+        const versionsContent = fs.readFileSync(versionsPath, 'utf-8');
+        const versionsData = yaml.parse(versionsContent) as { versions?: Array<{ sha256: string }> };
+        if (versionsData?.versions?.[0]?.sha256) {
+          meta.sha256 = versionsData.versions[0].sha256;
+          // Save migrated meta
+          writeMeta(slug, meta);
+        }
+      } catch {
+        // Ignore migration errors
+      }
+    }
+  }
+
+  return meta;
 }
 
 /**
@@ -72,12 +83,21 @@ export function writeMeta(slug: string, meta: LocalSkillMeta): void {
 }
 
 /**
- * Put a new skill version into the registry
+ * Write a readable SKILL.md working copy alongside meta.yaml
+ */
+function writeSkillFile(slug: string, content: string): void {
+  const skillFilePath = getSkillFilePath(slug);
+  ensureDir(getSkillDir(slug));
+  fs.writeFileSync(skillFilePath, content, 'utf-8');
+}
+
+/**
+ * Put a skill into the registry (create or update)
  *
  * @returns The sha256 hash of the content
  */
-export function putVersion(params: PutVersionParams): { sha256: string } {
-  const { slug, version, content, meta, provenance, changelog } = params;
+export function putSkill(params: PutSkillParams): { sha256: string } {
+  const { slug, content, meta } = params;
 
   // Ensure registry structure exists
   ensureRegistryStructure();
@@ -92,86 +112,48 @@ export function putVersion(params: PutVersionParams): { sha256: string } {
     description: meta.description,
     tags: meta.tags || [],
     compat: meta.compat || [],
+    sha256,
     updatedAt: new Date().toISOString(),
   };
   writeMeta(slug, fullMeta);
 
-  // Add version entry
-  const fullProvenance: Provenance = {
-    kind: provenance?.kind || 'local',
-    source: provenance?.source || 'created',
-    fetchedAt: provenance?.fetchedAt,
-    publishedBy: provenance?.publishedBy,
-  };
-
-  addVersionEntry(slug, {
-    version,
-    sha256,
-    provenance: fullProvenance,
-    changelog,
-  });
+  // Write readable SKILL.md working copy
+  writeSkillFile(slug, content);
 
   return { sha256 };
 }
 
 /**
- * Get a specific version of a skill
+ * Get a skill from the registry
  *
  * @returns The skill content and metadata, or null if not found
  */
-export function getVersion(slug: string, version: string): GetVersionResult | null {
+export function getSkill(slug: string): GetSkillResult | null {
   const meta = readMeta(slug);
-  if (!meta) {
+  if (!meta || !meta.sha256) {
     return null;
   }
 
-  const versionEntry = getVersionEntry(slug, version);
-  if (!versionEntry) {
-    return null;
-  }
-
-  const content = readObject(versionEntry.sha256);
+  const content = readObject(meta.sha256);
   if (!content) {
-    // Object is missing or corrupted
+    // Object is missing or corrupted, try the SKILL.md working copy
+    const skillFilePath = getSkillFilePath(slug);
+    if (fs.existsSync(skillFilePath)) {
+      const fallbackContent = fs.readFileSync(skillFilePath, 'utf-8');
+      return {
+        content: fallbackContent,
+        meta,
+        sha256: meta.sha256,
+      };
+    }
     return null;
   }
 
   return {
     content,
     meta,
-    sha256: versionEntry.sha256,
-    version: versionEntry.version,
-    provenance: versionEntry.provenance,
+    sha256: meta.sha256,
   };
-}
-
-/**
- * Get the latest version of a skill
- */
-export function getLatest(slug: string): GetVersionResult | null {
-  const latestVersion = getLatestVersion(slug);
-  if (!latestVersion) {
-    return null;
-  }
-  return getVersion(slug, latestVersion);
-}
-
-/**
- * Resolve and get a skill version based on constraint
- *
- * @param slug - Skill slug
- * @param constraint - Optional semver constraint
- * @returns The resolved skill, or null if no match
- */
-export function resolveAndGet(
-  slug: string,
-  constraint?: string
-): GetVersionResult | null {
-  const resolvedVersion = resolveVersionInternal(slug, constraint);
-  if (!resolvedVersion) {
-    return null;
-  }
-  return getVersion(slug, resolvedVersion);
 }
 
 /**
@@ -180,6 +162,11 @@ export function resolveAndGet(
 export function skillExists(slug: string): boolean {
   return pathSkillExists(slug);
 }
+
+/**
+ * Get the path to a skill's SKILL.md in the registry
+ */
+export { getSkillFilePath } from './paths.js';
 
 /**
  * List all skills in the registry
@@ -192,7 +179,6 @@ export function listSkills(): SkillSummary[] {
   }
 
   const slugs = fs.readdirSync(skillsDir).filter((name) => {
-    // Only include directories with both meta.yaml and versions.yaml
     return pathSkillExists(name);
   });
 
@@ -200,14 +186,11 @@ export function listSkills(): SkillSummary[] {
 
   for (const slug of slugs) {
     const meta = readMeta(slug);
-    const latestVersion = getLatestVersion(slug);
 
-    if (meta && latestVersion) {
+    if (meta) {
       summaries.push({
         slug,
-        latestVersion,
         meta,
-        versionCount: getVersionCount(slug),
       });
     }
   }
@@ -231,34 +214,25 @@ export function searchSkills(query: string): SearchResult[] {
   for (const skill of allSkills) {
     let matchedOn: SearchResult['matchedOn'] | null = null;
 
-    // Check slug (highest priority)
     if (skill.slug.toLowerCase().includes(lowerQuery)) {
       matchedOn = 'slug';
-    }
-    // Check name
-    else if (skill.meta.name.toLowerCase().includes(lowerQuery)) {
+    } else if (skill.meta.name.toLowerCase().includes(lowerQuery)) {
       matchedOn = 'name';
-    }
-    // Check tags
-    else if (skill.meta.tags.some((tag) => tag.toLowerCase().includes(lowerQuery))) {
+    } else if (skill.meta.tags.some((tag) => tag.toLowerCase().includes(lowerQuery))) {
       matchedOn = 'tags';
-    }
-    // Check description
-    else if (skill.meta.description?.toLowerCase().includes(lowerQuery)) {
+    } else if (skill.meta.description?.toLowerCase().includes(lowerQuery)) {
       matchedOn = 'description';
     }
 
     if (matchedOn) {
       results.push({
         slug: skill.slug,
-        latestVersion: skill.latestVersion,
         meta: skill.meta,
         matchedOn,
       });
     }
   }
 
-  // Sort by match type priority (slug > name > tags > description)
   const priority = { slug: 0, name: 1, tags: 2, description: 3 };
   results.sort((a, b) => priority[a.matchedOn] - priority[b.matchedOn]);
 
@@ -305,39 +279,15 @@ export function deleteSkill(slug: string): boolean {
 }
 
 /**
- * Get skill info including all versions
+ * Get skill info
  */
 export function getSkillInfo(slug: string): {
   meta: LocalSkillMeta;
-  versions: Array<{
-    version: string;
-    sha256: string;
-    createdAt: string;
-    provenance: Provenance;
-    changelog?: string;
-  }>;
 } | null {
   const meta = readMeta(slug);
   if (!meta) {
     return null;
   }
 
-  const versions = getAllVersions(slug);
-
-  return {
-    meta,
-    versions: versions.map((v) => ({
-      version: v.version,
-      sha256: v.sha256,
-      createdAt: v.createdAt,
-      provenance: v.provenance,
-      changelog: v.changelog,
-    })),
-  };
+  return { meta };
 }
-
-// Re-export commonly used functions from other modules
-export { resolveVersion } from './versions.js';
-export { getLatestVersion, getAllVersions, getVersionCount, versionExists } from './versions.js';
-export { objectExists, readObject } from './objects.js';
-export { ensureRegistryStructure, getRoot } from './paths.js';

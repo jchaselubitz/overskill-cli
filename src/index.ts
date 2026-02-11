@@ -5,25 +5,27 @@ import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { initCommand } from './commands/init.js';
-import { loginCommand } from './commands/login.js';
-import { syncCommand } from './commands/sync.js';
+import { newCommand } from './commands/new.js';
 import { addCommand } from './commands/add.js';
 import { removeCommand } from './commands/remove.js';
-import { deleteCommand } from './commands/delete.js';
-import { listCommand } from './commands/list.js';
-import { searchCommand } from './commands/search.js';
-import { infoCommand } from './commands/info.js';
-import { diffCommand } from './commands/diff.js';
+import { syncCommand } from './commands/sync.js';
 import { editCommand } from './commands/edit.js';
-import { pushCommand } from './commands/push.js';
-import { validateCommand } from './commands/validate.js';
-import { bundleCommand } from './commands/bundle.js';
-import { configCommand } from './commands/config.js';
-import { registryCommand } from './commands/registry.js';
+import { openCommand } from './commands/open.js';
 import { updateCommand } from './commands/update.js';
-import { newCommand } from './commands/new.js';
-import { publishCommand } from './commands/publish.js';
+import { listCommand } from './commands/list.js';
+import { infoCommand } from './commands/info.js';
 import { importCommand } from './commands/import.js';
+import { validateCommand } from './commands/validate.js';
+import { deleteCommand } from './commands/delete.js';
+import { configCommand } from './commands/config.js';
+import { publishCommand } from './commands/publish.js';
+// Cloud-related commands
+import { loginCommand } from './commands/login.js';
+import { pushCommand } from './commands/push.js';
+import { searchCommand } from './commands/search.js';
+import { diffCommand } from './commands/diff.js';
+import { bundleCommand } from './commands/bundle.js';
+import { registryCommand } from './commands/registry.js';
 import { feedbackCommand } from './commands/feedback.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -37,27 +39,30 @@ program
   .description('Overskill CLI - manage skills across repositories')
   .version(pkg.version);
 
-// Register all commands
+// Local commands (primary workflow)
 program.addCommand(initCommand);
-program.addCommand(loginCommand);
-program.addCommand(syncCommand);
+program.addCommand(newCommand);
 program.addCommand(addCommand);
 program.addCommand(removeCommand);
-program.addCommand(deleteCommand);
-program.addCommand(listCommand);
-program.addCommand(searchCommand);
-program.addCommand(infoCommand);
-program.addCommand(diffCommand);
+program.addCommand(syncCommand);
 program.addCommand(editCommand);
-program.addCommand(pushCommand);
-program.addCommand(validateCommand);
-program.addCommand(bundleCommand);
-program.addCommand(configCommand);
-program.addCommand(registryCommand);
+program.addCommand(openCommand);
 program.addCommand(updateCommand);
-program.addCommand(newCommand);
-program.addCommand(publishCommand);
+program.addCommand(listCommand);
+program.addCommand(infoCommand);
 program.addCommand(importCommand);
+program.addCommand(validateCommand);
+program.addCommand(deleteCommand);
+program.addCommand(configCommand);
+program.addCommand(publishCommand);
+
+// Cloud commands
+program.addCommand(loginCommand);
+program.addCommand(pushCommand);
+program.addCommand(searchCommand);
+program.addCommand(diffCommand);
+program.addCommand(bundleCommand);
+program.addCommand(registryCommand);
 program.addCommand(feedbackCommand);
 
 program.parse();

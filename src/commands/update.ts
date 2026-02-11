@@ -2,168 +2,121 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import ora from 'ora';
 import * as config from '../lib/config.js';
-import * as api from '../lib/api.js';
+import * as localRegistry from '../lib/local-registry/index.js';
 import * as lockfile from '../lib/lockfile.js';
 import * as fs from '../lib/fs.js';
-import * as semverLib from '../lib/semver.js';
 import * as indexGen from '../lib/index-gen.js';
-import type { SkillMeta } from '../types.js';
 
 export const updateCommand = new Command('update')
-  .description('Update skills to their latest versions')
-  .argument('[slug]', 'Skill slug to update (optional, updates all if not provided)')
-  .option('--check', 'Only check for updates, do not install')
-  .action(async (slug?: string, options?: { check?: boolean }) => {
+  .description('Save local skill changes back to the registry')
+  .argument('[slug]', 'Skill slug to update (optional, updates all modified if not provided)')
+  .action(async (slug?: string) => {
     try {
       // Check if initialized
       if (!config.configExists()) {
         console.log(chalk.red('Error: Not in a skills project.'));
-        console.log(`Run ${chalk.cyan('skills init')} first.`);
+        console.log(`Run ${chalk.cyan('skill init')} first.`);
         process.exit(1);
       }
 
       const skillsConfig = config.readConfig();
-      const lock = lockfile.readLockfile();
 
-      if (!lock || lock.skills.length === 0) {
-        console.log(chalk.yellow('No skills to update.'));
-        console.log(`Run ${chalk.cyan('skills sync')} first.`);
-        return;
-      }
+      // Determine which skills to update
+      let skillsToUpdate: string[] = [];
 
-      const skillsToCheck = slug
-        ? lock.skills.filter((s) => s.slug === slug)
-        : lock.skills;
-
-      if (skillsToCheck.length === 0) {
-        console.log(chalk.yellow(`Skill '${slug}' not found.`));
-        return;
-      }
-
-      const spinner = ora('Checking for updates...').start();
-
-      interface UpdateInfo {
-        slug: string;
-        registry: string;
-        currentVersion: string;
-        latestVersion: string;
-        constraint?: string;
-      }
-
-      const updates: UpdateInfo[] = [];
-
-      for (const locked of skillsToCheck) {
-        try {
-          // Get skill config for version constraint
-          const skillConfig = skillsConfig.skills.find((s) => s.slug === locked.slug);
-          const constraint = skillConfig?.version;
-
-          // Fetch remote skill
-          const remoteSkill = await api.getSkill(locked.registry, locked.slug);
-
-          // Check if update available
-          if (semverLib.isGreaterThan(remoteSkill.version, locked.version)) {
-            // Check constraint if present
-            if (constraint && !semverLib.satisfies(remoteSkill.version, constraint)) {
-              continue; // Latest doesn't satisfy constraint
-            }
-
-            updates.push({
-              slug: locked.slug,
-              registry: locked.registry,
-              currentVersion: locked.version,
-              latestVersion: remoteSkill.version,
-              constraint,
-            });
+      if (slug) {
+        // Specific skill
+        if (!fs.skillExists(slug)) {
+          console.log(chalk.red(`Error: Skill '${slug}' not found in project.`));
+          console.log(`Run ${chalk.cyan('skill sync')} first.`);
+          process.exit(1);
+        }
+        skillsToUpdate = [slug];
+      } else {
+        // All modified skills
+        const localSkills = fs.listLocalSkills();
+        for (const localSlug of localSkills) {
+          if (fs.isSkillModified(localSlug)) {
+            skillsToUpdate.push(localSlug);
           }
-        } catch {
-          // Skip skills that fail to fetch
+        }
+
+        if (skillsToUpdate.length === 0) {
+          console.log(chalk.yellow('No modified skills to update.'));
+          console.log(`Edit a skill with ${chalk.cyan('skill edit <slug>')} first, or specify a slug directly.`);
+          return;
         }
       }
 
-      spinner.stop();
+      const spinner = ora('Saving changes to registry...').start();
 
-      if (updates.length === 0) {
-        console.log(chalk.green('All skills are up to date.'));
-        return;
-      }
+      let updated = 0;
+      const errors: Array<{ slug: string; error: string }> = [];
 
-      // Show available updates
-      console.log(chalk.bold('Updates available:'));
-      console.log('');
+      for (const skillSlug of skillsToUpdate) {
+        try {
+          // Read content from project
+          const content = fs.readSkillContent(skillSlug);
+          if (!content) {
+            errors.push({ slug: skillSlug, error: 'Could not read SKILL.md from project' });
+            continue;
+          }
 
-      for (const update of updates) {
-        const constraintInfo = update.constraint ? chalk.gray(` (constraint: ${update.constraint})`) : '';
-        console.log(
-          `  ${chalk.cyan(update.slug.padEnd(25))} ${update.currentVersion} → ${chalk.green(update.latestVersion)}${constraintInfo}`
-        );
-      }
+          // Get existing meta from registry (or project)
+          const existingMeta = localRegistry.readMeta(skillSlug) || fs.readSkillMeta(skillSlug);
+          const name = existingMeta?.name || skillSlug;
+          const description = existingMeta?.description;
+          const tags = existingMeta?.tags || [];
+          const compat = existingMeta?.compat || [];
 
-      console.log('');
+          // Save to local registry
+          const { sha256 } = localRegistry.putSkill({
+            slug: skillSlug,
+            content,
+            meta: {
+              name,
+              description,
+              tags,
+              compat,
+            },
+          });
 
-      if (options?.check) {
-        console.log(`Run ${chalk.cyan('skills update')} to install updates.`);
-        return;
-      }
+          // Update lockfile
+          lockfile.updateLockedSkill({
+            slug: skillSlug,
+            sha256,
+          });
 
-      // Install updates
-      const installSpinner = ora('Installing updates...').start();
+          // Clear modified marker
+          fs.unmarkSkillModified(skillSlug);
 
-      const updatedSkills: SkillMeta[] = [];
-
-      for (const update of updates) {
-        // Fetch full skill with content
-        const remoteSkill = await api.getSkill(update.registry, update.slug);
-
-        if (!remoteSkill.content) {
-          continue;
+          updated++;
+        } catch (error) {
+          errors.push({
+            slug: skillSlug,
+            error: error instanceof Error ? error.message : String(error),
+          });
         }
-
-        const hash = await fs.computeHash(remoteSkill.content);
-
-        // Write to disk
-        const meta: Omit<SkillMeta, 'sha256'> = {
-          slug: update.slug,
-          registry: update.registry,
-          version: update.latestVersion,
-          name: remoteSkill.name,
-          description: remoteSkill.description,
-          tags: remoteSkill.tags,
-          compat: remoteSkill.compat,
-        };
-
-        fs.writeSkill(
-          {
-            slug: update.slug,
-            registry: update.registry,
-            version: update.latestVersion,
-            content: remoteSkill.content,
-            sha256: hash,
-          },
-          meta
-        );
-
-        // Update lockfile
-        lockfile.updateLockedSkill({
-          slug: update.slug,
-          registry: update.registry,
-          version: update.latestVersion,
-          sha256: hash,
-        });
-
-        updatedSkills.push({ ...meta, sha256: hash });
       }
 
       // Regenerate index
       indexGen.regenerateIndex();
 
-      installSpinner.succeed(`Updated ${updates.length} skill(s)`);
+      spinner.succeed(`Updated ${updated} skill(s) in registry`);
 
-      // Print summary
-      for (const update of updates) {
-        console.log(
-          `  ${chalk.cyan(update.slug)}: ${update.currentVersion} → ${chalk.green(update.latestVersion)}`
-        );
+      // Print results
+      for (const skillSlug of skillsToUpdate) {
+        if (!errors.find((e) => e.slug === skillSlug)) {
+          console.log(`  ${chalk.green('✓')} ${chalk.cyan(skillSlug)}`);
+        }
+      }
+
+      if (errors.length > 0) {
+        console.log('');
+        console.log(chalk.red(`${errors.length} skill(s) failed:`));
+        for (const error of errors) {
+          console.log(`  ${chalk.red('✗')} ${error.slug}: ${error.error}`);
+        }
       }
     } catch (error) {
       console.error(chalk.red('Error:'), error instanceof Error ? error.message : error);

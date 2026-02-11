@@ -52,10 +52,10 @@ export function getMetaPath(slug: string): string {
 }
 
 /**
- * Get the path to a skill's versions.yaml
+ * Get the path to a skill's readable SKILL.md working copy
  */
-export function getVersionsPath(slug: string): string {
-  return path.join(getSkillDir(slug), 'versions.yaml');
+export function getSkillFilePath(slug: string): string {
+  return path.join(getSkillDir(slug), 'SKILL.md');
 }
 
 /**
@@ -86,7 +86,7 @@ export function registryExists(): boolean {
  * Check if a skill exists in the registry
  */
 export function skillExists(slug: string): boolean {
-  return fs.existsSync(getMetaPath(slug)) && fs.existsSync(getVersionsPath(slug));
+  return fs.existsSync(getMetaPath(slug));
 }
 
 /**

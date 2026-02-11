@@ -5,17 +5,13 @@
  * - Deduplication via SHA256 hashing
  * - Integrity verification on read
  * - Atomic writes to prevent corruption
- * - Semver-based version resolution
  */
 
 // Re-export types
 export type {
-  Provenance,
-  VersionEntry,
-  VersionsFile,
   LocalSkillMeta,
-  PutVersionParams,
-  GetVersionResult,
+  PutSkillParams,
+  GetSkillResult,
   SkillSummary,
   SearchResult,
 } from './types.js';
@@ -28,7 +24,7 @@ export {
   getSkillsDir,
   getSkillDir,
   getMetaPath,
-  getVersionsPath,
+  getSkillFilePath as getSkillFilePathFromPaths,
   ensureDir,
   ensureRegistryStructure,
   registryExists,
@@ -48,30 +44,13 @@ export {
   cleanupTempFiles,
 } from './objects.js';
 
-// Re-export version operations
-export {
-  readVersionsFile,
-  writeVersionsFile,
-  getAllVersions,
-  getVersionStrings,
-  getLatestVersion,
-  getVersionEntry,
-  resolveVersion,
-  addVersionEntry,
-  removeVersionEntry,
-  versionExists,
-  getVersionCount,
-  createLocalProvenance,
-} from './versions.js';
-
 // Re-export skill operations (main API)
 export {
   readMeta,
   writeMeta,
-  putVersion,
-  getVersion,
-  getLatest,
-  resolveAndGet,
+  putSkill,
+  getSkill,
+  getSkillFilePath,
   skillExists,
   listSkills,
   searchSkills,

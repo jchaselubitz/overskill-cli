@@ -39,7 +39,6 @@ export function isCloudSource(source: SkillSource): source is CloudSource {
 export interface SkillEntry {
   slug: string;
   source?: string; // Optional, defaults to first local source
-  version?: string;
 }
 
 // Lock file types (.skills.lock)
@@ -50,16 +49,12 @@ export interface SkillsLock {
 
 export interface LockedSkill {
   slug: string;
-  registry: string;
-  version: string;
   sha256: string;
 }
 
 // Skill metadata (meta.yaml in each skill folder)
 export interface SkillMeta {
   slug: string;
-  registry: string;
-  version: string;
   name: string;
   description?: string;
   tags: string[];
@@ -115,9 +110,7 @@ export interface SkillVersionResponse {
 }
 
 export interface SyncSkillResponse {
-  registry: string;
   slug: string;
-  version: string;
   content: string;
   sha256: string;
 }

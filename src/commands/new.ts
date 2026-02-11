@@ -8,7 +8,6 @@ import * as yaml from 'yaml';
 import * as localRegistry from '../lib/local-registry/index.js';
 import * as config from '../lib/config.js';
 import * as auth from '../lib/auth.js';
-import { isValidVersion } from '../lib/semver.js';
 import { parseEditorCommand } from '../lib/editor.js';
 import type { SkillEntry } from '../types.js';
 
@@ -110,7 +109,6 @@ export const newCommand = new Command("new")
     "-c, --compat <compat>",
     "Comma-separated compatibility list (e.g., claude,gpt4)",
   )
-  .option("-v, --version <version>", "Initial version", "1.0.0")
   .option(
     "-m, --metadata <key=value>",
     "Repeatable metadata to include in SKILL.md frontmatter",
@@ -142,20 +140,6 @@ export const newCommand = new Command("new")
         console.log(
           chalk.red(`Error: Skill '${slug}' already exists in local registry.`),
         );
-        console.log(
-          `Use ${chalk.cyan(`skills publish ${slug}`)} to add a new version.`,
-        );
-        process.exit(1);
-      }
-
-      // Validate version
-      const version = options.version;
-      if (!isValidVersion(version)) {
-        console.log(
-          chalk.red(
-            `Error: Invalid version '${version}'. Use semver format (e.g., 1.0.0).`,
-          ),
-        );
         process.exit(1);
       }
 
@@ -175,7 +159,7 @@ export const newCommand = new Command("new")
         metadata,
       });
 
-      // Build content
+      // Build content with version comment at the top
       let content: string;
 
       if (options.content) {
@@ -184,13 +168,14 @@ export const newCommand = new Command("new")
           console.log(chalk.red(`Error: File not found: ${options.content}`));
           process.exit(1);
         }
-        content = fs.readFileSync(options.content, 'utf-8');
+        const fileContent = fs.readFileSync(options.content, 'utf-8');
+        content = `<!-- version: 1.0.0 -->\n${fileContent}`;
       } else if (options.blank) {
         // Frontmatter only
-        content = `${frontmatter}\n`;
+        content = `<!-- version: 1.0.0 -->\n${frontmatter}\n`;
       } else {
         // Template with frontmatter
-        content = `${frontmatter}${SKILL_TEMPLATE.replace('{{name}}', name)}`;
+        content = `<!-- version: 1.0.0 -->\n${frontmatter}${SKILL_TEMPLATE.replace('{{name}}', name)}`;
       }
 
       // Validate content
@@ -203,9 +188,8 @@ export const newCommand = new Command("new")
 
       try {
         // Save to local registry
-        const { sha256 } = localRegistry.putVersion({
+        const { sha256 } = localRegistry.putSkill({
           slug,
-          version,
           content,
           meta: {
             name,
@@ -213,19 +197,14 @@ export const newCommand = new Command("new")
             tags,
             compat,
           },
-          provenance: {
-            kind: 'local',
-            source: 'created',
-          },
         });
 
-        spinner.succeed(`Created ${chalk.cyan(slug)}@${version}`);
+        spinner.succeed(`Created ${chalk.cyan(slug)}`);
 
         console.log('');
         console.log('Skill details:');
         console.log(`  ${chalk.bold('Slug:')}        ${slug}`);
         console.log(`  ${chalk.bold('Name:')}        ${name}`);
-        console.log(`  ${chalk.bold('Version:')}     ${version}`);
         console.log(
           `  ${chalk.bold('SHA256:')}      ${sha256.substring(0, 16)}...`,
         );
@@ -257,7 +236,7 @@ export const newCommand = new Command("new")
               console.log('');
               console.log('Running sync...');
               const { syncCommand } = await import('./sync.js');
-              await syncCommand.parseAsync(['node', 'skills', 'sync']);
+              await syncCommand.parseAsync(['node', 'skill', 'sync']);
             }
           }
         }
@@ -280,10 +259,13 @@ export const newCommand = new Command("new")
         if (addedToProject) {
           console.log('Next steps:');
           console.log(
-            `  ${chalk.cyan(`skill info ${slug}`)}      View skill details`,
+            `  ${chalk.cyan(`skill edit ${slug}`)}      Edit the skill`,
           );
           console.log(
-            `  ${chalk.cyan(`skill publish ${slug}`)}   Publish a new version`,
+            `  ${chalk.cyan(`skill update ${slug}`)}    Save changes to registry`,
+          );
+          console.log(
+            `  ${chalk.cyan(`skill info ${slug}`)}      View skill details`,
           );
         } else if (isInProject) {
           console.log('Next steps:');
@@ -292,9 +274,6 @@ export const newCommand = new Command("new")
           );
           console.log(
             `  ${chalk.cyan(`skill info ${slug}`)}      View skill details`,
-          );
-          console.log(
-            `  ${chalk.cyan(`skill publish ${slug}`)}   Publish a new version`,
           );
         } else {
           console.log('Next steps:');

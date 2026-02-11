@@ -117,24 +117,10 @@ export const pushCommand = new Command('push')
             );
           } else {
             // Push new version
-            const locked = lockfile.getLockedSkill(skillSlug);
-            const currentVersion = locked?.version || '1.0.0';
-
-            // Determine new version
-            let newVersion = options.version;
-            if (!newVersion) {
-              newVersion = semverLib.autoBump(currentVersion);
-            }
+            const newVersion = options.version || '1.0.0';
 
             if (!semverLib.isValidVersion(newVersion)) {
               spinner.fail(`Invalid version: ${newVersion}`);
-              continue;
-            }
-
-            if (!semverLib.isGreaterThan(newVersion, currentVersion)) {
-              spinner.fail(
-                `New version (${newVersion}) must be greater than current (${currentVersion})`
-              );
               continue;
             }
 
@@ -149,8 +135,6 @@ export const pushCommand = new Command('push')
             const hash = await fs.computeHash(content);
             lockfile.updateLockedSkill({
               slug: skillSlug,
-              registry: source.registry,
-              version: newVersion,
               sha256: hash,
             });
 
