@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [2.0.0] - 2026-02-11
 
 ### Changed
 - **Removed versioning system**: Skills no longer track semver versions in the registry. Instead, a version number is included as an HTML comment (`<!-- version: 1.0.0 -->`) at the top of each SKILL.md for reference only. The registry stores one copy of each skill (the latest).
