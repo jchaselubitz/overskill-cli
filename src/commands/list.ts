@@ -2,30 +2,28 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import * as config from '../lib/config.js';
 import * as localRegistry from '../lib/local-registry/index.js';
-import * as lockfile from '../lib/lockfile.js';
 
 export const listCommand = new Command('list')
   .description('List skills')
-  .option('-i, --installed', 'List only installed skills in current project')
+  .option('-p, --project', 'List only skills in the current project')
   .option('-l, --local', 'List skills from local registry cache')
   .option('-t, --tags <tags>', 'Filter by tags (comma-separated)')
   .option('-c, --compat <compat>', 'Filter by compatibility (comma-separated)')
-  .action(async (options) => {
+  .action(async options => {
     try {
-      if (options.installed) {
+      if (options.project) {
         // List installed skills in current project
         if (!config.configExists()) {
           console.log(chalk.red('Error: Not in a skills project.'));
-          console.log(`Run ${chalk.cyan('skills init')} first.`);
+          console.log(`Run ${chalk.cyan('skill init')} first.`);
           process.exit(1);
         }
 
         const skillsConfig = config.readConfig();
-        const lock = lockfile.readLockfile();
 
         if (skillsConfig.skills.length === 0) {
           console.log(chalk.yellow('No skills configured in this project.'));
-          console.log(`Run ${chalk.cyan('skills add <slug>')} to add skills.`);
+          console.log(`Run ${chalk.cyan('skill add <slug>')} to add skills.`);
           return;
         }
 
@@ -33,19 +31,14 @@ export const listCommand = new Command('list')
         console.log('');
 
         for (const skill of skillsConfig.skills) {
-          const locked = lock?.skills.find((s) => s.slug === skill.slug);
-          const lockedVersion = locked?.version || 'not synced';
+          const description = localRegistry.skillExists(skill.slug)
+            ? localRegistry.readMeta(skill.slug)?.description
+            : undefined;
+          const descText = description
+            ? chalk.gray(` - ${description.substring(0, 50)}${description.length > 50 ? '...' : ''}`)
+            : '';
 
-          // Check if update available
-          const latestCached = localRegistry.getLatestVersion(skill.slug);
-          const hasUpdate = latestCached && locked?.version && latestCached !== locked.version;
-
-          const constraint = skill.version ? chalk.gray(` (${skill.version})`) : '';
-          const updateNote = hasUpdate ? chalk.yellow(` → ${latestCached} available`) : '';
-
-          console.log(
-            `  ${chalk.cyan(skill.slug.padEnd(25))} v${lockedVersion.padEnd(12)}${constraint}${updateNote}`
-          );
+          console.log(`  ${chalk.cyan(skill.slug.padEnd(25))}${descText}`);
         }
       } else {
         // List all skills in local registry cache
@@ -55,8 +48,8 @@ export const listCommand = new Command('list')
           console.log(chalk.yellow('No skills in local cache.'));
           console.log('');
           console.log('To add skills:');
-          console.log(`  ${chalk.cyan('skills new <slug>')}           Create a new skill`);
-          console.log(`  ${chalk.cyan('skills cache import <path>')} Import from a file`);
+          console.log(`  ${chalk.cyan('skill new <slug>')}           Create a new skill`);
+          console.log(`  ${chalk.cyan('skill import <path>')}        Import from a file`);
           return;
         }
 
@@ -89,13 +82,7 @@ export const listCommand = new Command('list')
             ? chalk.gray(` - ${skill.meta.description.substring(0, 50)}${skill.meta.description.length > 50 ? '...' : ''}`)
             : '';
 
-          const versionInfo = skill.versionCount > 1
-            ? chalk.gray(` (${skill.versionCount} versions)`)
-            : '';
-
-          console.log(
-            `  ${chalk.cyan(skill.slug.padEnd(25))} v${skill.latestVersion.padEnd(10)}${versionInfo}${description}`
-          );
+          console.log(`  ${chalk.cyan(skill.slug.padEnd(25))}${description}`);
         }
       }
     } catch (error) {

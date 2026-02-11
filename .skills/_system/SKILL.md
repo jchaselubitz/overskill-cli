@@ -41,10 +41,10 @@ Run them in the terminal:
 - `skill add <name>` — Add a skill to this project and sync it
 - `skill remove <name>` — Remove a skill from this project
 - `skill sync` — Re-sync all installed skills from remote
-- `skill update` — Pull latest versions of all skills
+- `skill save` — Save local skill changes back to the registry
 
 ### Editing and Publishing
-- `skill edit <name>` — Open a skill for editing in the default editor
+- `skill open <name>` — Open a skill for editing in the default editor
 - `skill push <name>` — Publish local edits to the remote registry
 - `skill diff <name>` — See what changed between local and remote
 - `skill validate <name>` — Check skill file structure

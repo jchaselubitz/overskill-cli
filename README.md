@@ -1,8 +1,7 @@
 # Overskill
 
-[Visit the Overskill Website](https://overskill.jacobchaselubitz.com/)
+Overskill is a AI coding agent skills manager that lets you keep skills in sync across repositories. It gives you a single place to write, version, and sync the instruction files that guide tools like Claude Code, Cursor, Codex, and Windsurf — then apply them to any repository with one command. Learn more at [overskill.jacobchaselubitz.com](https://overskill.jacobchaselubitz.com).
 
-Overskill is a AI coding agent skills manager that lets you keep skills in sync across repositories. It gives you a single place to write, version, and sync the instruction files that guide tools like Claude Code, Cursor, Codex, and Windsurf — then apply them to any repository with one command.
 
 **Why Overskill?**
 
@@ -11,6 +10,13 @@ Overskill is a AI coding agent skills manager that lets you keep skills in sync 
 - **Version-locked per repo.** `.skills.lock` pins exact versions and content hashes, so every collaborator and CI run gets the same skills.
 - **Transparent and auditable.** Skills live in your project as visible files you can read, diff, and review like any other code.
 - **Works offline.** Once synced, skills are local files with no runtime dependency on external services.
+
+## Upgrade from v1
+
+To migrate your local registry to the new format:
+```bash
+skill upgrade
+```
 
 ## How it works
 
@@ -47,6 +53,11 @@ skill new my-skill
 
 # Add skills to the project
 skill add my-skill
+
+# Modify a skill
+skill open my-skill    # opens in your editor
+skill save my-skill    # saves changes to the registry
+skill sync             # run in any project that uses this skill
 ```
 
 ## License

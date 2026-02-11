@@ -46,70 +46,38 @@ export const syncCommand = new Command("sync")
 
       // Process each skill
       for (const skillEntry of skillsConfig.skills) {
-        const { slug, version: constraint } = skillEntry;
+        const { slug } = skillEntry;
 
         // Check if skill exists in local registry
         if (!localRegistry.skillExists(slug)) {
           errors.push({
             slug,
-            error: `Not found in local cache. Run ${chalk.cyan("skill new ${slug}")} or ${chalk.cyan("skill cache import")}`,
-          });
-          continue;
-        }
-
-        // Get locked version if exists
-        const locked = existingLock?.skills.find((s) => s.slug === slug);
-
-        // Resolve version to install
-        let resolvedVersion: string | null = null;
-
-        if (locked && !options.force) {
-          // Prefer locked version for reproducibility
-          if (localRegistry.versionExists(slug, locked.version)) {
-            resolvedVersion = locked.version;
-          } else {
-            // Locked version not in cache, resolve from constraint
-            resolvedVersion = localRegistry.resolveVersion(slug, constraint);
-          }
-        } else {
-          // No lock or force flag, resolve from constraint
-          resolvedVersion = localRegistry.resolveVersion(slug, constraint);
-        }
-
-        if (!resolvedVersion) {
-          const availableVersions = localRegistry.getVersionStrings(slug);
-          errors.push({
-            slug,
-            error: constraint
-              ? `No cached version satisfies '${constraint}'. Available: ${availableVersions.join(", ")}`
-              : `No versions cached`,
+            error: `Not found in local cache. Run ${chalk.cyan(`skill new ${slug}`)} or ${chalk.cyan("skill import")}`,
           });
           continue;
         }
 
         // Get the skill content from local registry
-        const skillData = localRegistry.getVersion(slug, resolvedVersion);
+        const skillData = localRegistry.getSkill(slug);
         if (!skillData) {
           errors.push({
             slug,
-            error: `Failed to read version ${resolvedVersion} from cache (possibly corrupted)`,
+            error: `Failed to read from cache (possibly corrupted)`,
           });
           continue;
         }
 
-        // Check if changed
+        // Check if changed vs lock
+        const locked = existingLock?.skills.find((s) => s.slug === slug);
         const hasChanged =
           options.force ||
           !locked ||
-          locked.sha256 !== skillData.sha256 ||
-          locked.version !== resolvedVersion;
+          locked.sha256 !== skillData.sha256;
 
         if (hasChanged) {
           // Build metadata for project install
           const meta: Omit<SkillMeta, "sha256"> = {
             slug,
-            registry: "local",
-            version: resolvedVersion,
             name: skillData.meta.name,
             description: skillData.meta.description,
             tags: skillData.meta.tags,
@@ -119,9 +87,7 @@ export const syncCommand = new Command("sync")
           // Write skill to project
           fs.writeSkill(
             {
-              registry: "local",
               slug,
-              version: resolvedVersion,
               content: skillData.content,
               sha256: skillData.sha256,
             },
@@ -142,8 +108,6 @@ export const syncCommand = new Command("sync")
         // Add to lock
         lockedSkills.push({
           slug,
-          registry: "local",
-          version: resolvedVersion,
           sha256: skillData.sha256,
         });
       }

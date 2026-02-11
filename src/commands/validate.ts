@@ -11,7 +11,7 @@ export const validateCommand = new Command('validate')
       // Check if initialized
       if (!config.configExists()) {
         console.log(chalk.red('Error: Not in a skills project.'));
-        console.log(`Run ${chalk.cyan('skills init')} first.`);
+        console.log(`Run ${chalk.cyan('skill init')} first.`);
         process.exit(1);
       }
 
@@ -40,7 +40,7 @@ export const validateCommand = new Command('validate')
 
           // Check for title heading
           if (!content.match(/^#\s+.+/m)) {
-            errors.push('SKILL.md should start with a # heading');
+            warnings.push('SKILL.md should have a # heading');
           }
 
           // Check for reasonable length
@@ -57,12 +57,6 @@ export const validateCommand = new Command('validate')
           // Validate required fields
           if (!meta.slug) {
             errors.push('meta.yaml missing slug');
-          }
-          if (!meta.registry) {
-            errors.push('meta.yaml missing registry');
-          }
-          if (!meta.version) {
-            errors.push('meta.yaml missing version');
           }
 
           // Check slug format

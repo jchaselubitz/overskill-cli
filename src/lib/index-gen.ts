@@ -24,8 +24,6 @@ export function generateIndexContent(skills: SkillMeta[]): string {
   // Add each skill
   for (const skill of skills) {
     lines.push(`## ${skill.slug}`);
-    lines.push(`- **Source:** ${skill.registry}`);
-    lines.push(`- **Version:** ${skill.version}`);
 
     if (skill.description) {
       lines.push(`- **Description:** ${skill.description}`);

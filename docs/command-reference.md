@@ -50,35 +50,36 @@ Create a new skill in the local registry.
 
 | Flag | Description |
 |------|-------------|
-| `-n, --name <name>` | Display name |
-| `-d, --description <desc>` | Description |
+| `-n, --name <name>` | Skill display name |
+| `-d, --description <desc>` | Skill description |
 | `-t, --tags <tags>` | Comma-separated tags |
-| `-c, --compat <compat>` | Compatibility list (e.g., `claude,cursor`) |
-| `-v, --version <version>` | Initial version (default: `1.0.0`) |
-| `-m, --metadata <key=value>` | Custom frontmatter metadata (repeatable) |
+| `-c, --compat <compat>` | Comma-separated compatibility list (e.g., `claude,gpt4`) |
+| `-m, --metadata <key=value>` | Repeatable frontmatter metadata key-value pairs |
 | `--content <file>` | Read content from file instead of editor |
-| `--blank` | Open editor with blank content |
-| `--no-editor` | Skip editor, create with template |
-| `--no-add` | Skip adding to current project |
-| `--no-sync` | Skip automatic sync |
+| `--blank` | Open editor with blank content (frontmatter only) |
+| `--no-editor` | Skip editor and create with template |
+| `--no-add` | Skip adding to current project after creation |
+| `--no-sync` | Skip automatic sync after adding |
 
-### `skill publish <slug>`
+### `skill rename <slug>`
 
-Publish a new version of an existing skill.
+Rename a skill in the local registry, updating both its slug and display name. If the skill is used in the current project, updates the project config and installed skill directory as well.
 
 | Flag | Description |
 |------|-------------|
-| `-v, --version <version>` | Explicit version number |
-| `--patch` | Bump patch version |
-| `--minor` | Bump minor version |
-| `--major` | Bump major version |
-| `-m, --message <message>` | Changelog message |
-| `--content <file>` | Read content from file |
-| `--no-editor` | Skip editor, use current content |
 
-### `skill edit <slug>`
+### `skill publish <slug>`
 
-Open a skill for editing in your configured editor.
+Update a skill's content in the local registry.
+
+| Flag | Description |
+|------|-------------|
+| `--content <file>` | Read new content from file instead of editor |
+| `--no-editor` | Skip opening an editor (use current content as-is) |
+
+### `skill open <slug>`
+
+Open a skill from the local registry in your editor. Works globally, no project required.
 
 | Flag | Description |
 |------|-------------|
@@ -102,7 +103,6 @@ Add skills to the current project. Shows an interactive selection if no slugs ar
 
 | Flag | Description |
 |------|-------------|
-| `-v, --version <constraint>` | Version constraint (e.g., `>=1.0.0`, `^2.0.0`) |
 | `--no-sync` | Skip automatic sync after adding |
 
 ### `skill remove <slugs...>`
@@ -136,13 +136,9 @@ Bundle all or selected skills into a single markdown file. Bundles all installed
 |------|-------------|
 | `-o, --output <path>` | Output file path (default: `skills-bundle.md`) |
 
-### `skill update [slug]`
+### `skill save [slug]`
 
-Update skills to their latest versions. Updates all skills if no slug is provided.
-
-| Flag | Description |
-|------|-------------|
-| `--check` | Only check for updates, do not install |
+Save local skill changes from the current project back to the local registry. If no slug is provided, saves all modified skills.
 
 ---
 
@@ -174,7 +170,7 @@ Show detailed information about a skill.
 
 | Flag | Description |
 |------|-------------|
-| `-v, --version <version>` | Show info for a specific version |
+| `--content` | Show a short content preview for the skill |
 
 ---
 
@@ -235,3 +231,7 @@ Accept a pending invitation.
 ### `skill registry decline <registry> <invitation-id>`
 
 Decline a pending invitation.
+
+### `skill upgrade`
+
+Migrate the local registry from the legacy v1 format (versions in `objects/`) to the v2 format (`SKILL.md` files in skill folders). Safe to run multiple times; it only migrates skills that still need upgrading.

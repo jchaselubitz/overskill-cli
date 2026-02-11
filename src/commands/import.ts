@@ -42,7 +42,6 @@ function getCommonLocations(cwd: string): ScanLocation[] {
   const home = os.homedir();
 
   return [
-    // Claude Code skills directories
     {
       path: path.join(cwd, '.claude', 'skills'),
       type: 'claude-skills' as const,
@@ -55,14 +54,12 @@ function getCommonLocations(cwd: string): ScanLocation[] {
       label: 'Claude Skills (global)',
       pattern: 'skill-dirs' as const,
     },
-    // Generic skills directory in project root
     {
       path: path.join(cwd, 'skills'),
       type: 'claude-skills' as const,
       label: 'Skills (./skills)',
       pattern: 'skill-dirs' as const,
     },
-    // Claude Code commands
     {
       path: path.join(cwd, '.claude', 'commands'),
       type: 'claude-commands' as const,
@@ -75,14 +72,12 @@ function getCommonLocations(cwd: string): ScanLocation[] {
       label: 'Claude Commands (global)',
       pattern: 'directory' as const,
     },
-    // OpenAI Codex AGENTS.md
     {
       path: path.join(cwd, 'AGENTS.md'),
       type: 'agents-md' as const,
       label: 'OpenAI Codex (AGENTS.md)',
       pattern: 'file' as const,
     },
-    // Cursor rules
     {
       path: path.join(cwd, '.cursorrules'),
       type: 'cursorrules' as const,
@@ -170,7 +165,7 @@ function scanSkillDirs(location: ScanLocation): DiscoveredSkill[] {
 
     try {
       const content = fs.readFileSync(skillPath, 'utf-8');
-      const { frontmatter, body } = parseFrontmatter(content);
+      const { frontmatter } = parseFrontmatter(content);
       const metadata = extractMetadata(frontmatter, entry.name);
 
       skills.push({
@@ -184,7 +179,7 @@ function scanSkillDirs(location: ScanLocation): DiscoveredSkill[] {
         sourceType: location.type,
         sourceLabel: location.label,
       });
-    } catch (error) {
+    } catch {
       // Skip files that can't be read
     }
   }
@@ -229,7 +224,7 @@ function scanDirectory(location: ScanLocation): DiscoveredSkill[] {
         sourceType: location.type,
         sourceLabel: location.label,
       });
-    } catch (error) {
+    } catch {
       // Skip files that can't be read
     }
   }
@@ -366,7 +361,6 @@ async function selectSkills(skills: DiscoveredSkill[]): Promise<DiscoveredSkill[
 
   for (const part of parts) {
     if (part.includes('-')) {
-      // Range like "1-5"
       const [start, end] = part.split('-').map(n => parseInt(n.trim(), 10));
       if (!isNaN(start) && !isNaN(end)) {
         for (let i = start; i <= end; i++) {
@@ -377,7 +371,6 @@ async function selectSkills(skills: DiscoveredSkill[]): Promise<DiscoveredSkill[
         }
       }
     } else {
-      // Single number
       const num = parseInt(part, 10);
       const skill = indexToSkill.get(num);
       if (skill && !selected.includes(skill)) {
@@ -403,11 +396,8 @@ function importSkill(skill: DiscoveredSkill, options: { force: boolean }): { suc
   }
 
   try {
-    const version = '1.0.0';
-
-    localRegistry.putVersion({
+    localRegistry.putSkill({
       slug: skill.slug,
-      version,
       content: skill.content,
       meta: {
         name: skill.name,
@@ -415,15 +405,11 @@ function importSkill(skill: DiscoveredSkill, options: { force: boolean }): { suc
         tags: skill.tags,
         compat: skill.compat,
       },
-      provenance: {
-        kind: 'local',
-        source: `imported from ${skill.sourcePath}`,
-      },
     });
 
     return {
       success: true,
-      message: `Imported ${skill.slug}@${version}`,
+      message: `Imported ${skill.slug}`,
     };
   } catch (error) {
     return {
@@ -459,7 +445,6 @@ export const importCommand = new Command('import')
         const stat = fs.statSync(fullPath);
 
         if (stat.isDirectory()) {
-          // Check if it's a skill-dirs pattern (contains subdirs with SKILL.md)
           const entries = fs.readdirSync(fullPath, { withFileTypes: true });
           const hasSkillDirs = entries.some(e => {
             if (!e.isDirectory()) return false;

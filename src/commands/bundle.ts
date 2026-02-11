@@ -4,8 +4,6 @@ import * as path from 'path';
 import chalk from 'chalk';
 import * as config from '../lib/config.js';
 import * as fs from '../lib/fs.js';
-import * as lockfile from '../lib/lockfile.js';
-
 export const bundleCommand = new Command('bundle')
   .description('Bundle all or selected skills into a single markdown file')
   .argument('[slugs...]', 'Skill slugs to bundle (optional, bundles all if not provided)')
@@ -26,7 +24,6 @@ export const bundleCommand = new Command('bundle')
         return;
       }
 
-      const lock = lockfile.readLockfile();
       const bundleLines: string[] = [];
 
       for (const slug of skillsToBundle) {
@@ -36,12 +33,8 @@ export const bundleCommand = new Command('bundle')
           continue;
         }
 
-        const locked = lock?.skills.find((s) => s.slug === slug);
-        const registry = locked?.registry || 'unknown';
-        const version = locked?.version || 'unknown';
-
         // Add separator and skill content
-        bundleLines.push(`<!-- === SKILL: ${slug} (${registry} v${version}) === -->`);
+        bundleLines.push(`<!-- === SKILL: ${slug} === -->`);
         bundleLines.push('');
         bundleLines.push(content.trim());
         bundleLines.push('');

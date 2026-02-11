@@ -9,14 +9,13 @@ import type { SkillEntry } from '../types.js';
 export const addCommand = new Command('add')
   .description('Add one or more skills to the project')
   .argument('[slugs...]', 'Skill slugs to add')
-  .option('-v, --version <constraint>', 'Version constraint (e.g., ">=1.0.0", "^2.0.0")')
   .option('--no-sync', 'Skip automatic sync after adding')
   .action(async (slugs: string[], options) => {
     try {
       // Check if initialized
       if (!config.configExists()) {
         console.log(chalk.red('Error: Not in a skills project.'));
-        console.log(`Run ${chalk.cyan('skills init')} first.`);
+        console.log(`Run ${chalk.cyan('skill init')} first.`);
         process.exit(1);
       }
 
@@ -30,8 +29,8 @@ export const addCommand = new Command('add')
           console.log(chalk.yellow('No skills available in local cache.'));
           console.log('');
           console.log('To add skills, either:');
-          console.log(`  ${chalk.cyan('skills new <slug>')}           Create a new skill`);
-          console.log(`  ${chalk.cyan('skills cache import <path>')}   Import from a file`);
+          console.log(`  ${chalk.cyan('skill new <slug>')}           Create a new skill`);
+          console.log(`  ${chalk.cyan('skill import <path>')}        Import from a file`);
           return;
         }
 
@@ -73,15 +72,8 @@ export const addCommand = new Command('add')
             spinner.fail(`Skill '${slug}' not found in local cache.`);
             console.log('');
             console.log('To add this skill, either:');
-            console.log(`  ${chalk.cyan(`skills new ${slug}`)}           Create it locally`);
-            console.log(`  ${chalk.cyan(`skills cache import <path>`)}   Import from a file`);
-            continue;
-          }
-
-          // Get skill info from local registry
-          const skillInfo = localRegistry.getSkillInfo(slug);
-          if (!skillInfo) {
-            spinner.fail(`Could not read skill '${slug}' from cache.`);
+            console.log(`  ${chalk.cyan(`skill new ${slug}`)}           Create it locally`);
+            console.log(`  ${chalk.cyan(`skill import <path>`)}        Import from a file`);
             continue;
           }
 
@@ -92,36 +84,12 @@ export const addCommand = new Command('add')
             continue;
           }
 
-          // Resolve version if constraint provided
-          let resolvedVersion: string | null = null;
-          if (options.version) {
-            resolvedVersion = localRegistry.resolveVersion(slug, options.version);
-            if (!resolvedVersion) {
-              const availableVersions = localRegistry.getVersionStrings(slug);
-              spinner.fail(`No cached version of '${slug}' satisfies '${options.version}'.`);
-              console.log(`  Available versions: ${availableVersions.join(', ')}`);
-              continue;
-            }
-          } else {
-            resolvedVersion = localRegistry.getLatestVersion(slug);
-          }
-
           // Add to config
-          const entry: SkillEntry = {
-            slug,
-          };
-
-          if (options.version) {
-            entry.version = options.version;
-          }
-
+          const entry: SkillEntry = { slug };
           config.addSkill(entry);
           addedSkills.push(slug);
 
-          const displayVersion = resolvedVersion || localRegistry.getLatestVersion(slug);
-          spinner.succeed(
-            `Added ${chalk.cyan(slug)} (v${displayVersion})`
-          );
+          spinner.succeed(`Added ${chalk.cyan(slug)}`);
         } catch (error) {
           spinner.fail(error instanceof Error ? error.message : String(error));
         }
@@ -134,7 +102,7 @@ export const addCommand = new Command('add')
 
         // Import sync command and run it
         const { syncCommand } = await import('./sync.js');
-        await syncCommand.parseAsync(['node', 'skills', 'sync']);
+        await syncCommand.parseAsync(['node', 'skill', 'sync']);
       }
     } catch (error) {
       console.error(chalk.red('Error:'), error instanceof Error ? error.message : error);

@@ -47,7 +47,7 @@ export const searchCommand = new Command('search')
         const matchNote = chalk.gray(` (matched on ${skill.matchedOn})`);
 
         console.log(
-          `${chalk.cyan(skill.slug.padEnd(30))} v${skill.latestVersion.padEnd(10)}${tags}${matchNote}`
+          `${chalk.cyan(skill.slug.padEnd(30))}${tags}${matchNote}`
         );
 
         if (skill.meta.description) {
