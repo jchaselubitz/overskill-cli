@@ -123,6 +123,10 @@ export const syncCommand = new Command("sync")
       fs.updateAgentsMd(skillsConfig.install_path);
       fs.updateCursorRules(skillsConfig.install_path);
 
+      // Sync skills to .claude/skills/ as symlinks for native agent loading
+      const syncedSlugs = lockedSkills.map((s) => s.slug);
+      fs.syncClaudeNativeSkills(syncedSlugs);
+
       // Write lockfile
       lockfile.writeLockfile(lockfile.createLockfile(lockedSkills));
 
