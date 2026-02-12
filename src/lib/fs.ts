@@ -274,9 +274,9 @@ function isSymlink(p: string): boolean {
 }
 
 /**
- * Sync skills as symlinks in .claude/skills/ for native agent loading.
+ * Sync skills as directory symlinks in .claude/skills/ for native agent loading.
  * This allows agents like Claude Code to auto-load Overskill skills
- * the same way they load skills from .claude/skills/.
+ * the same way they load skills from .claude/skills/<name>/SKILL.md.
  */
 export function syncClaudeNativeSkills(syncedSlugs: string[]): void {
   const projectRoot = findProjectRoot() || process.cwd();
@@ -296,24 +296,23 @@ export function syncClaudeNativeSkills(syncedSlugs: string[]): void {
       const resolvedTarget = path.resolve(claudeSkillsDir, target);
       // Check if this symlink points into our install path
       if (resolvedTarget.startsWith(installPath + path.sep) || resolvedTarget.startsWith(installPath + '/')) {
-        const slug = path.basename(entry, '.md');
-        if (!syncedSlugs.includes(slug)) {
+        if (!syncedSlugs.includes(entry)) {
           fs.unlinkSync(fullPath);
         }
       }
     } catch {
-      // Skip files we can't read
+      // Skip entries we can't read
     }
   }
 
-  // Create/update symlinks for current skills
+  // Create/update directory symlinks for current skills
   for (const slug of syncedSlugs) {
-    const skillPath = path.join(installPath, slug, 'SKILL.md');
-    const linkPath = path.join(claudeSkillsDir, `${slug}.md`);
+    const skillDir = path.join(installPath, slug);
+    const linkPath = path.join(claudeSkillsDir, slug);
 
-    if (!fs.existsSync(skillPath)) continue;
+    if (!fs.existsSync(path.join(skillDir, 'SKILL.md'))) continue;
 
-    // Don't overwrite user-created regular files
+    // Don't overwrite user-created regular directories
     if (fs.existsSync(linkPath) && !isSymlink(linkPath)) {
       continue;
     }
@@ -323,18 +322,18 @@ export function syncClaudeNativeSkills(syncedSlugs: string[]): void {
       fs.unlinkSync(linkPath);
     }
 
-    // Create relative symlink
-    const relativePath = path.relative(claudeSkillsDir, skillPath);
+    // Create relative symlink to skill directory
+    const relativePath = path.relative(claudeSkillsDir, skillDir);
     fs.symlinkSync(relativePath, linkPath);
   }
 }
 
 /**
- * Remove a single skill's symlink from .claude/skills/
+ * Remove a single skill's directory symlink from .claude/skills/
  */
 export function removeClaudeNativeSkill(slug: string): void {
   const projectRoot = findProjectRoot() || process.cwd();
-  const linkPath = path.join(projectRoot, '.claude', 'skills', `${slug}.md`);
+  const linkPath = path.join(projectRoot, '.claude', 'skills', slug);
 
   if (isSymlink(linkPath)) {
     fs.unlinkSync(linkPath);
