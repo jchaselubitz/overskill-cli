@@ -1,5 +1,5 @@
 # .skills.lock — auto-generated, commit to repo
-locked_at: 2026-02-11T15:13:33.906Z
+locked_at: 2026-02-12T14:50:34.153Z
 skills:
   - slug: zod-v4-patterns
     sha256: e43ec9383a90fb3cca3a0fcdbebbd7e3f28e504948e721dfb2b39462eb715804
@@ -11,5 +11,3 @@ skills:
     sha256: 154aeff750c4be7324ec9efc7ec7c223734421276490c91613450eb03ed0e5c6
   - slug: code-review
     sha256: 0e076a7f11a50ccf46bfefec1654346ae0e443022a3fba91ef5ecc0b8b49e732
-  - slug: test
-    sha256: 402a75824315031b9b61321c07b5ac4aec112abeec828e536456853490fd8959
