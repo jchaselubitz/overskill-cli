@@ -12,22 +12,10 @@ Overskill is a AI coding agent skills manager that lets you keep skills in sync 
 
 ## Upgrading
 
-### Upgrade from v2.0.x
-
-Run this once to update your global registry, then sync each repo:
+Run `skill upgrade` in each repository that uses Overskill. This migrates your global registry (if needed) and updates the project to the latest format — moving skills to `.claude/skills/`, removing `.skills.lock`, and syncing everything.
 
 ```bash
-# Once, globally
-skill upgrade
-
-# In each repository that uses Overskill
-skill sync
-```
-
-### Upgrade from v1
-
-To migrate your local registry to the new format:
-```bash
+cd your-project
 skill upgrade
 ```
 
