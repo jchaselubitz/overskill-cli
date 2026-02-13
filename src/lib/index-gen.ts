@@ -1,7 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { getInstallPath } from './config.js';
-import { listLocalSkills, readSkillMeta } from './fs.js';
+import { listLocalSkills, readSkillMeta, getClaudeSkillsDir, ensureDir } from './fs.js';
 import type { SkillMeta } from '../types.js';
 
 /**
@@ -45,11 +44,12 @@ export function generateIndexContent(skills: SkillMeta[]): string {
 }
 
 /**
- * Write the SKILLS_INDEX.md file
+ * Write the SKILLS_INDEX.md file to .claude/skills/
  */
 export function writeIndex(skills: SkillMeta[]): void {
-  const installPath = getInstallPath();
-  const indexPath = path.join(installPath, 'SKILLS_INDEX.md');
+  const claudeSkills = getClaudeSkillsDir();
+  ensureDir(claudeSkills);
+  const indexPath = path.join(claudeSkills, 'SKILLS_INDEX.md');
 
   const content = generateIndexContent(skills);
   fs.writeFileSync(indexPath, content, 'utf-8');
@@ -76,11 +76,11 @@ export function regenerateIndex(): void {
 }
 
 /**
- * Read the current index file
+ * Read the current index file from .claude/skills/
  */
 export function readIndex(): string | null {
-  const installPath = getInstallPath();
-  const indexPath = path.join(installPath, 'SKILLS_INDEX.md');
+  const claudeSkills = getClaudeSkillsDir();
+  const indexPath = path.join(claudeSkills, 'SKILLS_INDEX.md');
 
   if (!fs.existsSync(indexPath)) {
     return null;
