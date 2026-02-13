@@ -41,7 +41,7 @@ If no editor is configured, Overskill falls back to the `$EDITOR` environment va
 
 ## Setting the default install path
 
-By default, skills are installed to `.skills/` in each project. To change the default:
+By default, skills are installed to `.claude/skills/` in each project. To change the default:
 
 ```bash
 skill config install_path .ai/skills

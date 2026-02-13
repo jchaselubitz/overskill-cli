@@ -4,6 +4,7 @@ import ora from 'ora';
 import { checkbox } from '@inquirer/prompts';
 import * as config from '../lib/config.js';
 import * as localRegistry from '../lib/local-registry/index.js';
+import * as fs from '../lib/fs.js';
 import type { SkillEntry } from '../types.js';
 
 export const addCommand = new Command('add')
@@ -62,6 +63,7 @@ export const addCommand = new Command('add')
       }
 
       const addedSkills: string[] = [];
+      let needsSync = false;
 
       for (const slug of slugs) {
         const spinner = ora(`Adding ${slug}...`).start();
@@ -77,10 +79,16 @@ export const addCommand = new Command('add')
             continue;
           }
 
-          // Check if already added
+          // Check if already in config
           const existing = skillsConfig.skills.find((s) => s.slug === slug);
           if (existing) {
-            spinner.warn(`${slug} already added to project`);
+            // Still need to sync if the skill is missing from the install path
+            if (!fs.skillExists(slug)) {
+              spinner.succeed(`${slug} already in config, will re-install`);
+              needsSync = true;
+            } else {
+              spinner.warn(`${slug} already added to project`);
+            }
             continue;
           }
 
@@ -95,8 +103,8 @@ export const addCommand = new Command('add')
         }
       }
 
-      // Sync if skills were added
-      if (addedSkills.length > 0 && options.sync !== false) {
+      // Sync if skills were added or need re-installing
+      if ((addedSkills.length > 0 || needsSync) && options.sync !== false) {
         console.log('');
         console.log('Running sync...');
 

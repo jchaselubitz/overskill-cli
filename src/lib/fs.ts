@@ -157,7 +157,7 @@ export function writeSystemSkill(content: string): void {
 }
 
 /**
- * Add .skills/ to .gitignore if not present
+ * Add install path to .gitignore if not present
  */
 export function updateGitignore(installPath: string): void {
   const projectRoot = findProjectRoot() || process.cwd();
@@ -290,6 +290,11 @@ export function syncClaudeNativeSkills(syncedSlugs: string[]): void {
   const projectRoot = findProjectRoot() || process.cwd();
   const installPath = getInstallPath();
   const claudeSkillsDir = path.join(projectRoot, '.claude', 'skills');
+
+  // If skills are already installed directly into .claude/skills, no symlinks needed
+  if (path.resolve(installPath) === path.resolve(claudeSkillsDir)) {
+    return;
+  }
 
   ensureDir(claudeSkillsDir);
 

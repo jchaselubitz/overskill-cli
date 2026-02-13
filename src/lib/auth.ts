@@ -238,7 +238,7 @@ export function setEditor(editor: string): void {
  * Get default install path
  */
 export function getDefaultInstallPath(): string {
-  return readConfig().install_path || ".skills";
+  return readConfig().install_path || ".claude/skills";
 }
 
 /**

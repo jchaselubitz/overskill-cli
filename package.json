@@ -1,6 +1,6 @@
 {
   "name": "overskill",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Overskill CLI - manage skills across repositories",
   "main": "./dist/index.js",
   "bin": {
@@ -28,7 +28,7 @@
     "type": "git",
     "url": "https://github.com/jchaselubitz/overskill-cli.git"
   },
-  "homepage": "https://github.com/jchaselubitz/overskill-cli",
+  "homepage": "https://overskill.jacobchaselubitz.com/",
   "bugs": {
     "url": "https://github.com/jchaselubitz/overskill-cli/issues"
   },

@@ -67,12 +67,13 @@ export const syncCommand = new Command("sync")
           continue;
         }
 
-        // Check if changed vs lock
+        // Check if changed vs lock or missing from disk
         const locked = existingLock?.skills.find((s) => s.slug === slug);
         const hasChanged =
           options.force ||
           !locked ||
-          locked.sha256 !== skillData.sha256;
+          locked.sha256 !== skillData.sha256 ||
+          !fs.skillExists(slug);
 
         if (hasChanged) {
           // Build metadata for project install
