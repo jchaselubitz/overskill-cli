@@ -67,12 +67,13 @@ export const syncCommand = new Command("sync")
           continue;
         }
 
-        // Check if changed vs lock
+        // Check if changed vs lock or missing from disk
         const locked = existingLock?.skills.find((s) => s.slug === slug);
         const hasChanged =
           options.force ||
           !locked ||
-          locked.sha256 !== skillData.sha256;
+          locked.sha256 !== skillData.sha256 ||
+          !fs.skillExists(slug);
 
         if (hasChanged) {
           // Build metadata for project install
@@ -119,9 +120,13 @@ export const syncCommand = new Command("sync")
       indexGen.writeIndex(skills);
 
       // Update agent config files with skills discovery section
-      fs.updateClaudeMd(skillsConfig.install_path);
-      fs.updateAgentsMd(skillsConfig.install_path);
-      fs.updateCursorRules(skillsConfig.install_path);
+      fs.updateClaudeMd();
+      fs.updateAgentsMd();
+      fs.updateCursorRules();
+
+      // Sync skills to .claude/skills/ as symlinks for native agent loading
+      const syncedSlugs = lockedSkills.map((s) => s.slug);
+      fs.syncClaudeNativeSkills(syncedSlugs);
 
       // Write lockfile
       lockfile.writeLockfile(lockfile.createLockfile(lockedSkills));

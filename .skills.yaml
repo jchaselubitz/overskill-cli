@@ -1,11 +1,6 @@
 sources:
   - name: "local"
     kind: "local"
-install_path: ".skills"
+install_path: ".claude/skills"
 skills:
-  - slug: "zod-v4-patterns"
-  - slug: "gemini-api"
-  - slug: "loading-button"
-  - slug: "edge-functions"
   - slug: "code-review"
-  - slug: "test"

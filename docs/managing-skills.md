@@ -8,8 +8,8 @@ When you initialize Overskill in a repository, it creates the following:
 |---|---|---|
 | `.skills.yaml` | Lists which skills the project uses and where to find them | Yes |
 | `.skills.lock` | Pins exact versions and content hashes for reproducibility | Yes |
-| `.skills/` | Contains the installed skill files | Your choice |
-| `.skills/SKILLS_INDEX.md` | Auto-generated index so AI agents can discover skills | Your choice |
+| `.claude/skills/` | Contains the installed skill files | Your choice |
+| `.claude/skills/SKILLS_INDEX.md` | Auto-generated index so AI agents can discover skills | Your choice |
 
 On `init` and `sync`, Overskill also updates your AI agent config files so that Claude, Cursor, and Codex automatically discover installed skills:
 
@@ -26,7 +26,7 @@ skill init
 ```
 
 Options:
-- `-p, --path <path>` — custom install path (default: `.skills`)
+- `-p, --path <path>` — custom install path (default: `.claude/skills`)
 
 ## Importing existing skills
 

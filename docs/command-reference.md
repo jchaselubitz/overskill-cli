@@ -8,7 +8,7 @@ Initialize a new skills configuration in the current directory.
 
 | Flag | Description |
 |------|-------------|
-| `-p, --path <path>` | Install path for skills (default: `.skills`) |
+| `-p, --path <path>` | Install path for skills (default: `.claude/skills`) |
 | `--cloud` | Include a cloud registry source |
 | `-u, --url <url>` | API URL for cloud registry (requires `--cloud`) |
 | `-r, --registry <slug>` | Cloud registry slug (requires `--cloud`) |

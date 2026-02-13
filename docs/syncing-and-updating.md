@@ -18,7 +18,7 @@ skill info my-skill
 
 ## Syncing skills
 
-`skill sync` installs all configured skills from your global registry into the project's `.skills/` directory. It also regenerates the skills index and updates agent config files.
+`skill sync` installs all configured skills from your global registry into the project's `.claude/skills/` directory. It also regenerates the skills index and updates agent config files.
 
 ```bash
 skill sync

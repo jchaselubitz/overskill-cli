@@ -43,7 +43,7 @@ The CLI is built with TypeScript and `commander`.
 - `.skills.yaml` is the main project-level config (committed)
 - `.skills.lock` tracks exact versions and hashes of installed skills
 - `SKILLS_INDEX.md` is auto-generated in the install directory for AI agents
-- Skills are installed to `.skills/` (not committed)
+- Skills are installed to `.claude/skills/` by default
 - Global config directory: `~/.overskill/` (works on macOS, Linux, Windows)
 
 You can safely reason about these files and flows **without** needing to know anything about how a server or database might be implemented.
@@ -86,7 +86,7 @@ When testing CLI behavior, focus on:
 
 - Config file operations (read/write `.skills.yaml`)
 - Lockfile behavior (version comparison, hash checking)
-- Filesystem effects (creating/updating `.skills/` directories and files)
+- Filesystem effects (creating/updating skill directories and files)
 - User-facing messages and exit codes
 
 For external interactions that would normally hit a remote API, **prefer mocking** in tests or using abstractions in `cli/src/lib/` that can be easily stubbed.
@@ -102,7 +102,7 @@ For external interactions that would normally hit a remote API, **prefer mocking
 **Config Files:**
 - `.skills.yaml` - Project config (committed)
 - `.skills.lock` - Version lock (committed)
-- `.skills/` - Installed skills directory (not committed)
+- `.claude/skills/` - Default install directory for skills
 - `~/.overskill/config.json` - Global CLI config (cross-platform: macOS, Linux, Windows)
 
 <!-- overskill-start -->
@@ -110,7 +110,7 @@ For external interactions that would normally hit a remote API, **prefer mocking
 
 This project uses Overskill to manage reusable AI skills.
 
-Before starting any task, read `.skills/SKILLS_INDEX.md` to discover available skills. When a skill is relevant to your current task, read its full SKILL.md file and follow its instructions.
+Before starting any task, read `.claude/skills/SKILLS_INDEX.md` to discover available skills. When a skill is relevant to your current task, read its full SKILL.md file and follow its instructions.
 
 To manage skills, use the `skill` CLI command (run `skill --help` for usage).
 <!-- overskill-end -->

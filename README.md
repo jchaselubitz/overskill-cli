@@ -11,7 +11,21 @@ Overskill is a AI coding agent skills manager that lets you keep skills in sync 
 - **Transparent and auditable.** Skills live in your project as visible files you can read, diff, and review like any other code.
 - **Works offline.** Once synced, skills are local files with no runtime dependency on external services.
 
-## Upgrade from v1
+## Upgrading
+
+### Upgrade from v2.0.x
+
+Run this once to update your global registry, then sync each repo:
+
+```bash
+# Once, globally
+skill upgrade
+
+# In each repository that uses Overskill
+skill sync
+```
+
+### Upgrade from v1
 
 To migrate your local registry to the new format:
 ```bash
@@ -20,7 +34,9 @@ skill upgrade
 
 ## How it works
 
-Overskill maintains a **global registry** on your machine (in `~/.overskill/registry/`). When you create or import a skill, it's saved there. When you run `skill add` and `skill sync` in a repository, Overskill copies the right version into the project's `.skills/` directory and generates an index file so AI agents discover them automatically.
+Overskill maintains a **global registry** on your machine (in `~/.overskill/registry/`). When you create or import a skill, it's saved there. When you run `skill add` and `skill sync` in a repository, Overskill writes the skills into `.claude/skills/<slug>/SKILL.md` and generates a `SKILLS_INDEX.md` in that same directory.
+
+**`.claude/skills/` is the single source of truth for all agents.** Overskill configures your IDE to point agents at `.claude/skills/SKILLS_INDEX.md` so they can discover available skills. Run `skill init` and Overskill will set this up in your agent config files (CLAUDE.md, AGENTS.md, `.cursor/rules/`).
 
 ## Documentation
 

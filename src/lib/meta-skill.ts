@@ -13,8 +13,8 @@ to guide your work. This file explains how to use it.
 
 ## Discovering Skills
 
-Check the file \`SKILLS_INDEX.md\` in this directory. It lists every skill
-installed in this project with its name, description, tags, and file path.
+Check \`.claude/skills/SKILLS_INDEX.md\` (in the project root). It lists every
+skill installed in this project with its name, description, tags, and file path.
 
 Before starting any task, scan SKILLS_INDEX.md to identify relevant skills.
 Match skills to your task by:

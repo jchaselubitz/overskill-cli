@@ -42,7 +42,7 @@ skill init
 
 This creates:
 - `.skills.yaml` — your project's skill configuration
-- `.skills/` — the directory where skills are installed
+- `.claude/skills/` — the directory where skills are installed
 
 You'll be asked whether to track installed skills in git. If your skills don't contain private information, tracking them lets other contributors (and AI agents cloning the repo) use them without running `skill sync`.
 

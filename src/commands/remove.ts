@@ -41,6 +41,9 @@ export const removeCommand = new Command('remove')
           fs.deleteSkill(slug);
         }
 
+        // Remove symlink from .claude/skills/
+        fs.removeClaudeNativeSkill(slug);
+
         // Remove from lockfile (use "local" as registry for local sources)
         lockfile.removeLockedSkill(slug);
 

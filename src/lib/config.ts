@@ -13,7 +13,7 @@ import { isLocalSource, isCloudSource } from '../types.js';
 
 const DEFAULT_CONFIG: SkillsConfig = {
   sources: [],
-  install_path: '.skills',
+  install_path: '.claude/skills',
   skills: [],
 };
 
@@ -110,7 +110,7 @@ export function readConfig(): SkillsConfig {
 
   return {
     sources,
-    install_path: (parsed.install_path as string) || '.skills',
+    install_path: (parsed.install_path as string) || '.claude/skills',
     skills: (parsed.skills as SkillEntry[]) || [],
   };
 }

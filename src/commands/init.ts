@@ -1,4 +1,5 @@
 import { Command } from 'commander';
+import * as fs from 'fs';
 import * as path from 'path';
 import chalk from 'chalk';
 import { confirm } from '@inquirer/prompts';
@@ -13,7 +14,7 @@ export const initCommand = new Command('init')
   .option('--cloud', 'Include a cloud registry source')
   .option('-u, --url <url>', 'API URL for the cloud registry (requires --cloud)')
   .option('-r, --registry <slug>', 'Cloud registry slug (requires --cloud)')
-  .option('-p, --path <path>', 'Install path for skills', '.skills')
+  .option('-p, --path <path>', 'Install path for skills', '.claude/skills')
   .action(async (options) => {
     try {
       // Check if already initialized
@@ -67,10 +68,28 @@ export const initCommand = new Command('init')
       // Ensure local registry structure exists
       ensureRegistryStructure();
 
+      // Detect existing skills in the install path and offer to import them
+      const existingSkillSlugs: string[] = [];
+      if (fs.existsSync(fullInstallPath)) {
+        const entries = fs.readdirSync(fullInstallPath, { withFileTypes: true });
+        for (const entry of entries) {
+          if (entry.isDirectory() && fs.existsSync(path.join(fullInstallPath, entry.name, 'SKILL.md'))) {
+            existingSkillSlugs.push(entry.name);
+          }
+        }
+      }
+
+      if (existingSkillSlugs.length > 0) {
+        console.log('');
+        console.log(chalk.yellow(`Found ${existingSkillSlugs.length} existing skill(s) in ${installPath}/. Select which to import into the registry (recommended — prevents them from being overwritten on next sync).`));
+        const { importCommand } = await import('./import.js');
+        await importCommand.parseAsync(['node', 'skill', fullInstallPath]);
+      }
+
       const trackInGit = await confirm({
         message:
           'Track skills in git? Tracking skills in git allows coding agents that clone your repo to see the included skills. If your skills include private information, respond "no".',
-        default: false,
+        default: true,
       });
 
       // Update .gitignore if user does not want to track skills in git

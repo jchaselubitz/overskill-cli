@@ -21,10 +21,18 @@ export function getSkillDir(slug: string): string {
 }
 
 /**
- * Get the system skill directory path
+ * Get the .claude/skills directory path (single source of truth for all agents)
+ */
+export function getClaudeSkillsDir(): string {
+  const projectRoot = findProjectRoot() || process.cwd();
+  return path.join(projectRoot, '.claude', 'skills');
+}
+
+/**
+ * Get the system skill directory path (lives in .claude/skills/_system)
  */
 export function getSystemDir(): string {
-  return path.join(getInstallPath(), '_system');
+  return path.join(getClaudeSkillsDir(), '_system');
 }
 
 /**
@@ -149,7 +157,7 @@ export function writeSystemSkill(content: string): void {
 }
 
 /**
- * Add .skills/ to .gitignore if not present
+ * Add install path to .gitignore if not present
  */
 export function updateGitignore(installPath: string): void {
   const projectRoot = findProjectRoot() || process.cwd();
@@ -203,7 +211,7 @@ function upsertManagedSection(
   fs.writeFileSync(filePath, content, 'utf-8');
 }
 
-function overskillMdSection(installPath: string): string {
+function overskillMdSection(): string {
   const startMarker = '<!-- overskill-start -->';
   const endMarker = '<!-- overskill-end -->';
   return `${startMarker}
@@ -211,7 +219,7 @@ function overskillMdSection(installPath: string): string {
 
 This project uses Overskill to manage reusable AI skills.
 
-Before starting any task, read \`${installPath}/SKILLS_INDEX.md\` to discover available skills. When a skill is relevant to your current task, read its full SKILL.md file and follow its instructions.
+Before starting any task, read \`.claude/skills/SKILLS_INDEX.md\` to discover available skills. When a skill is relevant to your current task, read its full SKILL.md file and follow its instructions.
 
 To manage skills, use the \`skill\` CLI command (run \`skill --help\` for usage).
 ${endMarker}`;
@@ -220,25 +228,25 @@ ${endMarker}`;
 /**
  * Add or update the Overskill section in CLAUDE.md
  */
-export function updateClaudeMd(installPath: string): void {
+export function updateClaudeMd(): void {
   const projectRoot = findProjectRoot() || process.cwd();
   const filePath = path.join(projectRoot, 'CLAUDE.md');
-  upsertManagedSection(filePath, '<!-- overskill-start -->', '<!-- overskill-end -->', overskillMdSection(installPath));
+  upsertManagedSection(filePath, '<!-- overskill-start -->', '<!-- overskill-end -->', overskillMdSection());
 }
 
 /**
  * Add or update the Overskill section in AGENTS.md
  */
-export function updateAgentsMd(installPath: string): void {
+export function updateAgentsMd(): void {
   const projectRoot = findProjectRoot() || process.cwd();
   const filePath = path.join(projectRoot, 'AGENTS.md');
-  upsertManagedSection(filePath, '<!-- overskill-start -->', '<!-- overskill-end -->', overskillMdSection(installPath));
+  upsertManagedSection(filePath, '<!-- overskill-start -->', '<!-- overskill-end -->', overskillMdSection());
 }
 
 /**
  * Add or update the Overskill rule in .cursor/rules/
  */
-export function updateCursorRules(installPath: string): void {
+export function updateCursorRules(): void {
   const projectRoot = findProjectRoot() || process.cwd();
   const rulesDir = path.join(projectRoot, '.cursor', 'rules');
   ensureDir(rulesDir);
@@ -254,12 +262,95 @@ alwaysApply: true
 
 This project uses Overskill to manage reusable AI skills.
 
-Before starting any task, read \`${installPath}/SKILLS_INDEX.md\` to discover available skills. When a skill is relevant to your current task, read its full SKILL.md file and follow its instructions.
+Before starting any task, read \`.claude/skills/SKILLS_INDEX.md\` to discover available skills. When a skill is relevant to your current task, read its full SKILL.md file and follow its instructions.
 
 To manage skills, use the \`skill\` CLI command (run \`skill --help\` for usage).
 `;
 
   fs.writeFileSync(rulePath, content, 'utf-8');
+}
+
+/**
+ * Check if a path is a symlink
+ */
+function isSymlink(p: string): boolean {
+  try {
+    return fs.lstatSync(p).isSymbolicLink();
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Sync skills as directory symlinks in .claude/skills/ for native agent loading.
+ * This allows agents like Claude Code to auto-load Overskill skills
+ * the same way they load skills from .claude/skills/<name>/SKILL.md.
+ */
+export function syncClaudeNativeSkills(syncedSlugs: string[]): void {
+  const projectRoot = findProjectRoot() || process.cwd();
+  const installPath = getInstallPath();
+  const claudeSkillsDir = path.join(projectRoot, '.claude', 'skills');
+
+  // If skills are already installed directly into .claude/skills, no symlinks needed
+  if (path.resolve(installPath) === path.resolve(claudeSkillsDir)) {
+    return;
+  }
+
+  ensureDir(claudeSkillsDir);
+
+  // Clean up stale Overskill-managed symlinks
+  const entries = fs.readdirSync(claudeSkillsDir);
+  for (const entry of entries) {
+    const fullPath = path.join(claudeSkillsDir, entry);
+    if (!isSymlink(fullPath)) continue;
+
+    try {
+      const target = fs.readlinkSync(fullPath);
+      const resolvedTarget = path.resolve(claudeSkillsDir, target);
+      // Check if this symlink points into our install path
+      if (resolvedTarget.startsWith(installPath + path.sep) || resolvedTarget.startsWith(installPath + '/')) {
+        if (!syncedSlugs.includes(entry)) {
+          fs.unlinkSync(fullPath);
+        }
+      }
+    } catch {
+      // Skip entries we can't read
+    }
+  }
+
+  // Create/update directory symlinks for current skills
+  for (const slug of syncedSlugs) {
+    const skillDir = path.join(installPath, slug);
+    const linkPath = path.join(claudeSkillsDir, slug);
+
+    if (!fs.existsSync(path.join(skillDir, 'SKILL.md'))) continue;
+
+    // Don't overwrite user-created regular directories
+    if (fs.existsSync(linkPath) && !isSymlink(linkPath)) {
+      continue;
+    }
+
+    // Remove existing symlink if present
+    if (isSymlink(linkPath)) {
+      fs.unlinkSync(linkPath);
+    }
+
+    // Create relative symlink to skill directory
+    const relativePath = path.relative(claudeSkillsDir, skillDir);
+    fs.symlinkSync(relativePath, linkPath);
+  }
+}
+
+/**
+ * Remove a single skill's directory symlink from .claude/skills/
+ */
+export function removeClaudeNativeSkill(slug: string): void {
+  const projectRoot = findProjectRoot() || process.cwd();
+  const linkPath = path.join(projectRoot, '.claude', 'skills', slug);
+
+  if (isSymlink(linkPath)) {
+    fs.unlinkSync(linkPath);
+  }
 }
 
 /**
