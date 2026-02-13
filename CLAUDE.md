@@ -41,7 +41,6 @@ yarn start
 The CLI is built with TypeScript and `commander`.
 
 - `.skills.yaml` is the main project-level config (committed)
-- `.skills.lock` tracks exact versions and hashes of installed skills
 - `SKILLS_INDEX.md` is auto-generated in the install directory for AI agents
 - Skills are installed to `.claude/skills/` by default
 - Global config directory: `~/.overskill/` (works on macOS, Linux, Windows)
@@ -85,7 +84,6 @@ When adding commands, prefer:
 When testing CLI behavior, focus on:
 
 - Config file operations (read/write `.skills.yaml`)
-- Lockfile behavior (version comparison, hash checking)
 - Filesystem effects (creating/updating skill directories and files)
 - User-facing messages and exit codes
 
@@ -101,7 +99,6 @@ For external interactions that would normally hit a remote API, **prefer mocking
 
 **Config Files:**
 - `.skills.yaml` - Project config (committed)
-- `.skills.lock` - Version lock (committed)
 - `.claude/skills/` - Default install directory for skills
 - `~/.overskill/config.json` - Global CLI config (cross-platform: macOS, Linux, Windows)
 

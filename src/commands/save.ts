@@ -3,7 +3,6 @@ import chalk from 'chalk';
 import ora from 'ora';
 import * as config from '../lib/config.js';
 import * as localRegistry from '../lib/local-registry/index.js';
-import * as lockfile from '../lib/lockfile.js';
 import * as fs from '../lib/fs.js';
 import * as indexGen from '../lib/index-gen.js';
 
@@ -79,12 +78,6 @@ export const saveCommand = new Command('save')
               tags,
               compat,
             },
-          });
-
-          // Update lockfile
-          lockfile.updateLockedSkill({
-            slug: skillSlug,
-            sha256,
           });
 
           // Clear modified marker

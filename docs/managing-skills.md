@@ -7,7 +7,6 @@ When you initialize Overskill in a repository, it creates the following:
 | File / Directory | Purpose | Commit to git? |
 |---|---|---|
 | `.skills.yaml` | Lists which skills the project uses and where to find them | Yes |
-| `.skills.lock` | Pins exact versions and content hashes for reproducibility | Yes |
 | `.claude/skills/` | Contains the installed skill files | Your choice |
 | `.claude/skills/SKILLS_INDEX.md` | Auto-generated index so AI agents can discover skills | Your choice |
 
@@ -87,7 +86,7 @@ Options:
 skill remove my-skill
 ```
 
-This removes the skill from `.skills.yaml`, deletes it from the `.skills/` directory, and updates the lockfile. The skill remains in your global registry for use in other projects.
+This removes the skill from `.skills.yaml` and deletes it from the install directory. The skill remains in your global registry for use in other projects.
 
 You can remove multiple skills at once:
 

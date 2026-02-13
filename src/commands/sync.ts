@@ -3,16 +3,14 @@ import chalk from "chalk";
 import ora from "ora";
 import * as config from "../lib/config.js";
 import * as localRegistry from "../lib/local-registry/index.js";
-import * as lockfile from "../lib/lockfile.js";
 import * as fs from "../lib/fs.js";
 import * as indexGen from "../lib/index-gen.js";
 import { META_SKILL_CONTENT } from "../lib/meta-skill.js";
-import type { SkillMeta, LockedSkill } from "../types.js";
+import type { SkillMeta } from "../types.js";
 
 export const syncCommand = new Command("sync")
   .description("Sync all configured skills from local registry to project")
-  .option("-f, --force", "Force re-install even if unchanged")
-  .action(async (options) => {
+  .action(async () => {
     try {
       // Check if initialized
       if (!config.configExists()) {
@@ -34,17 +32,13 @@ export const syncCommand = new Command("sync")
       // Ensure install directory exists
       fs.ensureDir(config.getInstallPath());
 
-      // Read existing lockfile
-      const existingLock = lockfile.readLockfile();
-
       // Track statistics
       let updated = 0;
-      let unchanged = 0;
       const errors: Array<{ slug: string; error: string }> = [];
       const skills: SkillMeta[] = [];
-      const lockedSkills: LockedSkill[] = [];
+      const syncedSlugs: string[] = [];
 
-      // Process each skill
+      // Process each skill — always install latest from registry
       for (const skillEntry of skillsConfig.skills) {
         const { slug } = skillEntry;
 
@@ -67,50 +61,28 @@ export const syncCommand = new Command("sync")
           continue;
         }
 
-        // Check if changed vs lock or missing from disk
-        const locked = existingLock?.skills.find((s) => s.slug === slug);
-        const hasChanged =
-          options.force ||
-          !locked ||
-          locked.sha256 !== skillData.sha256 ||
-          !fs.skillExists(slug);
-
-        if (hasChanged) {
-          // Build metadata for project install
-          const meta: Omit<SkillMeta, "sha256"> = {
-            slug,
-            name: skillData.meta.name,
-            description: skillData.meta.description,
-            tags: skillData.meta.tags,
-            compat: skillData.meta.compat,
-          };
-
-          // Write skill to project
-          fs.writeSkill(
-            {
-              slug,
-              content: skillData.content,
-              sha256: skillData.sha256,
-            },
-            meta,
-          );
-          updated++;
-
-          skills.push({ ...meta, sha256: skillData.sha256 });
-        } else {
-          // Read existing metadata from project
-          const existingMeta = fs.readSkillMeta(slug);
-          if (existingMeta) {
-            skills.push(existingMeta);
-          }
-          unchanged++;
-        }
-
-        // Add to lock
-        lockedSkills.push({
+        // Build metadata for project install
+        const meta: Omit<SkillMeta, "sha256"> = {
           slug,
-          sha256: skillData.sha256,
-        });
+          name: skillData.meta.name,
+          description: skillData.meta.description,
+          tags: skillData.meta.tags,
+          compat: skillData.meta.compat,
+        };
+
+        // Write skill to project
+        fs.writeSkill(
+          {
+            slug,
+            content: skillData.content,
+            sha256: skillData.sha256,
+          },
+          meta,
+        );
+        updated++;
+
+        skills.push({ ...meta, sha256: skillData.sha256 });
+        syncedSlugs.push(slug);
       }
 
       // Write system (meta) skill
@@ -125,20 +97,13 @@ export const syncCommand = new Command("sync")
       fs.updateCursorRules();
 
       // Sync skills to .claude/skills/ as symlinks for native agent loading
-      const syncedSlugs = lockedSkills.map((s) => s.slug);
       fs.syncClaudeNativeSkills(syncedSlugs);
-
-      // Write lockfile
-      lockfile.writeLockfile(lockfile.createLockfile(lockedSkills));
 
       spinner.succeed("Sync complete!");
 
       // Print summary
-      const totalSuccess = updated + unchanged;
       console.log("");
-      console.log(`Synced ${chalk.cyan(totalSuccess)} skills.`);
-      console.log(`  ${chalk.green(updated)} updated`);
-      console.log(`  ${chalk.gray(unchanged)} unchanged`);
+      console.log(`Synced ${chalk.cyan(updated)} skills.`);
 
       // Print errors if any
       if (errors.length > 0) {

@@ -2,7 +2,6 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import * as config from '../lib/config.js';
 import * as fs from '../lib/fs.js';
-import * as lockfile from '../lib/lockfile.js';
 import * as indexGen from '../lib/index-gen.js';
 
 export const removeCommand = new Command('remove')
@@ -43,9 +42,6 @@ export const removeCommand = new Command('remove')
 
         // Remove symlink from .claude/skills/
         fs.removeClaudeNativeSkill(slug);
-
-        // Remove from lockfile (use "local" as registry for local sources)
-        lockfile.removeLockedSkill(slug);
 
         console.log(chalk.green(`Removed ${chalk.cyan(slug)}`));
       }

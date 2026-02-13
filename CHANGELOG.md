@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.2.0] - 2026-02-13
+
+### Removed
+- **Removed `.skills.lock` lockfile**: The lockfile concept has been removed entirely. `skill sync` now always installs the latest version of each skill from the registry, making the lockfile unnecessary. The `--force` flag on `sync` has also been removed since every sync now writes the latest content.
+- `SkillsLock` and `LockedSkill` types
+- `src/lib/lockfile.ts` module
+- Lockfile update calls from `save`, `push`, and `remove` commands
+
 ## [2.1.0] - 2026-02-13
 
 ### Changed
