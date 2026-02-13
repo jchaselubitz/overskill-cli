@@ -119,9 +119,9 @@ export const syncCommand = new Command("sync")
       indexGen.writeIndex(skills);
 
       // Update agent config files with skills discovery section
-      fs.updateClaudeMd(skillsConfig.install_path);
-      fs.updateAgentsMd(skillsConfig.install_path);
-      fs.updateCursorRules(skillsConfig.install_path);
+      fs.updateClaudeMd();
+      fs.updateAgentsMd();
+      fs.updateCursorRules();
 
       // Sync skills to .claude/skills/ as symlinks for native agent loading
       const syncedSlugs = lockedSkills.map((s) => s.slug);

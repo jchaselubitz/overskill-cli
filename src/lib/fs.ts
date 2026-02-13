@@ -21,10 +21,18 @@ export function getSkillDir(slug: string): string {
 }
 
 /**
- * Get the system skill directory path
+ * Get the .claude/skills directory path (single source of truth for all agents)
+ */
+export function getClaudeSkillsDir(): string {
+  const projectRoot = findProjectRoot() || process.cwd();
+  return path.join(projectRoot, '.claude', 'skills');
+}
+
+/**
+ * Get the system skill directory path (lives in .claude/skills/_system)
  */
 export function getSystemDir(): string {
-  return path.join(getInstallPath(), '_system');
+  return path.join(getClaudeSkillsDir(), '_system');
 }
 
 /**
@@ -203,7 +211,7 @@ function upsertManagedSection(
   fs.writeFileSync(filePath, content, 'utf-8');
 }
 
-function overskillMdSection(installPath: string): string {
+function overskillMdSection(): string {
   const startMarker = '<!-- overskill-start -->';
   const endMarker = '<!-- overskill-end -->';
   return `${startMarker}
@@ -211,7 +219,7 @@ function overskillMdSection(installPath: string): string {
 
 This project uses Overskill to manage reusable AI skills.
 
-Before starting any task, read \`${installPath}/SKILLS_INDEX.md\` to discover available skills. When a skill is relevant to your current task, read its full SKILL.md file and follow its instructions.
+Before starting any task, read \`.claude/skills/SKILLS_INDEX.md\` to discover available skills. When a skill is relevant to your current task, read its full SKILL.md file and follow its instructions.
 
 To manage skills, use the \`skill\` CLI command (run \`skill --help\` for usage).
 ${endMarker}`;
@@ -220,25 +228,25 @@ ${endMarker}`;
 /**
  * Add or update the Overskill section in CLAUDE.md
  */
-export function updateClaudeMd(installPath: string): void {
+export function updateClaudeMd(): void {
   const projectRoot = findProjectRoot() || process.cwd();
   const filePath = path.join(projectRoot, 'CLAUDE.md');
-  upsertManagedSection(filePath, '<!-- overskill-start -->', '<!-- overskill-end -->', overskillMdSection(installPath));
+  upsertManagedSection(filePath, '<!-- overskill-start -->', '<!-- overskill-end -->', overskillMdSection());
 }
 
 /**
  * Add or update the Overskill section in AGENTS.md
  */
-export function updateAgentsMd(installPath: string): void {
+export function updateAgentsMd(): void {
   const projectRoot = findProjectRoot() || process.cwd();
   const filePath = path.join(projectRoot, 'AGENTS.md');
-  upsertManagedSection(filePath, '<!-- overskill-start -->', '<!-- overskill-end -->', overskillMdSection(installPath));
+  upsertManagedSection(filePath, '<!-- overskill-start -->', '<!-- overskill-end -->', overskillMdSection());
 }
 
 /**
  * Add or update the Overskill rule in .cursor/rules/
  */
-export function updateCursorRules(installPath: string): void {
+export function updateCursorRules(): void {
   const projectRoot = findProjectRoot() || process.cwd();
   const rulesDir = path.join(projectRoot, '.cursor', 'rules');
   ensureDir(rulesDir);
@@ -254,7 +262,7 @@ alwaysApply: true
 
 This project uses Overskill to manage reusable AI skills.
 
-Before starting any task, read \`${installPath}/SKILLS_INDEX.md\` to discover available skills. When a skill is relevant to your current task, read its full SKILL.md file and follow its instructions.
+Before starting any task, read \`.claude/skills/SKILLS_INDEX.md\` to discover available skills. When a skill is relevant to your current task, read its full SKILL.md file and follow its instructions.
 
 To manage skills, use the \`skill\` CLI command (run \`skill --help\` for usage).
 `;
