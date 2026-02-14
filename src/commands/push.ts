@@ -4,7 +4,6 @@ import ora from 'ora';
 import * as config from '../lib/config.js';
 import * as api from '../lib/api.js';
 import * as fs from '../lib/fs.js';
-import * as lockfile from '../lib/lockfile.js';
 import * as semverLib from '../lib/semver.js';
 import { isCloudSource } from '../types.js';
 
@@ -129,13 +128,6 @@ export const pushCommand = new Command('push')
               version: newVersion,
               content,
               changelog: options.changelog,
-            });
-
-            // Update lockfile
-            const hash = await fs.computeHash(content);
-            lockfile.updateLockedSkill({
-              slug: skillSlug,
-              sha256: hash,
             });
 
             // Clear modified marker

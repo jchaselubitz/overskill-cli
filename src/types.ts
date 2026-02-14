@@ -41,17 +41,6 @@ export interface SkillEntry {
   source?: string; // Optional, defaults to first local source
 }
 
-// Lock file types (.skills.lock)
-export interface SkillsLock {
-  locked_at: string;
-  skills: LockedSkill[];
-}
-
-export interface LockedSkill {
-  slug: string;
-  sha256: string;
-}
-
 // Skill metadata (meta.yaml in each skill folder)
 export interface SkillMeta {
   slug: string;

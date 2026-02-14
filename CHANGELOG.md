@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.2.0] - 2026-02-14
+
+### Changed
+- **`skill upgrade` now handles full project migration**: Upgrades the global registry, migrates the install path to `.claude/skills/`, removes `.skills.lock`, runs `skill sync` to rebuild skills and update agent configs, removes legacy `.skill/` if present, and cleans up the old install directory — all in one command.
+- **`skill sync` always installs latest**: Sync no longer checks a lockfile; it always writes the latest version of each skill from the registry. The `--force` flag has been removed since it's no longer needed.
+
+### Removed
+- **Removed `.skills.lock` lockfile**: The lockfile concept has been removed entirely, making sync simpler and eliminating version-pinning complexity.
+- `SkillsLock` and `LockedSkill` types
+- `src/lib/lockfile.ts` module
+- Lockfile update calls from `save`, `push`, and `remove` commands
+
+### Migration
+
+Run `skill upgrade` in each repository that uses Overskill:
+
+```bash
+cd your-project
+skill upgrade
+```
+
 ## [2.1.0] - 2026-02-13
 
 ### Changed

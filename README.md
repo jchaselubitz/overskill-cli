@@ -7,28 +7,15 @@ Overskill is a AI coding agent skills manager that lets you keep skills in sync 
 
 - **Write once, use everywhere.** Create a skill once and add it to as many repositories as you need. When you improve it, update every project in seconds.
 - **Agent-agnostic.** Skills are plain markdown files. They work with any agent that can read markdown — no plugin API, no vendor lock-in.
-- **Version-locked per repo.** `.skills.lock` pins exact versions and content hashes, so every collaborator and CI run gets the same skills.
 - **Transparent and auditable.** Skills live in your project as visible files you can read, diff, and review like any other code.
 - **Works offline.** Once synced, skills are local files with no runtime dependency on external services.
 
 ## Upgrading
 
-### Upgrade from v2.0.x
-
-Run this once to update your global registry, then sync each repo:
+Run `skill upgrade` in each repository that uses Overskill. This migrates your global registry (if needed) and updates the project to the latest format — moving skills to `.claude/skills/`, removing `.skills.lock`, and syncing everything.
 
 ```bash
-# Once, globally
-skill upgrade
-
-# In each repository that uses Overskill
-skill sync
-```
-
-### Upgrade from v1
-
-To migrate your local registry to the new format:
-```bash
+cd your-project
 skill upgrade
 ```
 
