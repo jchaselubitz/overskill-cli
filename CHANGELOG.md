@@ -2,10 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
-## [2.2.0] - 2026-02-13
+## [2.2.0] - 2026-02-14
 
 ### Changed
-- **`skill upgrade` now handles full project migration**: Upgrades the global registry, migrates the install path to `.claude/skills/`, removes `.skills.lock`, syncs all skills, updates agent config files, and cleans up the old install directory — all in one command.
+- **`skill upgrade` now handles full project migration**: Upgrades the global registry, migrates the install path to `.claude/skills/`, removes `.skills.lock`, runs `skill sync` to rebuild skills and update agent configs, removes legacy `.skill/` if present, and cleans up the old install directory — all in one command.
 - **`skill sync` always installs latest**: Sync no longer checks a lockfile; it always writes the latest version of each skill from the registry. The `--force` flag has been removed since it's no longer needed.
 
 ### Removed
@@ -21,6 +21,24 @@ Run `skill upgrade` in each repository that uses Overskill:
 ```bash
 cd your-project
 skill upgrade
+```
+
+## [2.1.0] - 2026-02-13
+
+### Changed
+- **`.claude/skills/` is now the single source of truth for all agents**: Skills, `SKILLS_INDEX.md`, and the `_system` meta-skill are all written to `.claude/skills/`. Previously these were split between `.skills/` and `.claude/skills/`. Agent configuration files (CLAUDE.md, AGENTS.md, Cursor rules) now point agents to `.claude/skills/` to discover available skills.
+- **`SKILLS_INDEX.md` moved to `.claude/skills/`**: The auto-generated index file that agents use to discover skills is now written inside `.claude/skills/SKILLS_INDEX.md` instead of `.skills/SKILLS_INDEX.md`.
+
+### Migration
+
+If you are upgrading from v2.0.x, run the following once to update your global registry, then sync each repository:
+
+```bash
+# Run once globally
+skill upgrade
+
+# Run in each repository that uses Overskill
+skill sync
 ```
 
 ## [2.0.0] - 2026-02-11

@@ -13,11 +13,7 @@ import {
 import { readObject } from "../lib/local-registry/objects.js";
 import { readMeta, writeMeta } from "../lib/local-registry/skills.js";
 import * as config from "../lib/config.js";
-import * as localRegistry from "../lib/local-registry/index.js";
-import * as fs from "../lib/fs.js";
-import * as indexGen from "../lib/index-gen.js";
-import { META_SKILL_CONTENT } from "../lib/meta-skill.js";
-import type { SkillMeta } from "../types.js";
+import { syncCommand } from "./sync.js";
 
 export const upgradeCommand = new Command("upgrade")
   .description(
@@ -120,23 +116,21 @@ export const upgradeCommand = new Command("upgrade")
         return;
       }
 
-      const skillsConfig = config.readConfig();
       const projectRoot = config.findProjectRoot() || process.cwd();
+      const skillsConfig = config.readConfig();
       const currentInstallPath = skillsConfig.install_path;
       const targetInstallPath = ".claude/skills";
       const lockfilePath = path.join(projectRoot, ".skills.lock");
+      const legacySkillDir = path.join(projectRoot, ".skill");
+      const targetInstallFullPath = path.join(projectRoot, targetInstallPath);
       const hasLockfile = nodeFs.existsSync(lockfilePath);
       const needsPathMigration = currentInstallPath !== targetInstallPath;
+      const hasLegacySkillDir = nodeFs.existsSync(legacySkillDir);
+      const hasExistingClaudeSkills = nodeFs.existsSync(targetInstallFullPath);
 
-      if (!needsPathMigration && !hasLockfile) {
-        console.log("");
-        console.log(chalk.green("Project is already up-to-date!"));
-        return;
-      }
-
-      // Inform the user what needs to change
+      // Inform the user what this reset+sync upgrade will do.
       console.log("");
-      console.log(chalk.yellow("Project upgrade available:"));
+      console.log(chalk.yellow("Project upgrade actions:"));
       if (needsPathMigration) {
         console.log(
           `  • Install path will change from ${chalk.red(currentInstallPath)} → ${chalk.green(targetInstallPath)}`,
@@ -147,10 +141,23 @@ export const upgradeCommand = new Command("upgrade")
           `  • ${chalk.red(".skills.lock")} will be removed (no longer used)`,
         );
       }
+      if (hasLegacySkillDir) {
+        console.log(
+          `  • Legacy ${chalk.red(".skill/")} will be removed after sync`,
+        );
+      }
+      if (hasExistingClaudeSkills) {
+        console.log(
+          `  • Existing ${chalk.red(targetInstallPath + "/")} will be deleted`,
+        );
+      } else {
+        console.log(
+          `  • ${chalk.gray(targetInstallPath + "/")} does not exist and will be created by sync`,
+        );
+      }
       console.log(
-        `  • All skills in .skills.yaml will be synced to ${chalk.cyan(targetInstallPath + "/")}`,
+        `  • Run ${chalk.cyan("skill sync")} to rebuild skills from ${chalk.cyan(".skills.yaml")}`,
       );
-      console.log(`  • Agent config files will be updated`);
 
       const proceed = await confirm({
         message: "Proceed with project upgrade?",
@@ -162,7 +169,7 @@ export const upgradeCommand = new Command("upgrade")
         return;
       }
 
-      const spinner = ora("Upgrading project...").start();
+      const spinner = ora("Preparing project upgrade...").start();
 
       // Update install_path in config
       if (needsPathMigration) {
@@ -175,100 +182,19 @@ export const upgradeCommand = new Command("upgrade")
         nodeFs.unlinkSync(lockfilePath);
       }
 
-      // Ensure new install directory exists
-      const newInstallFullPath = path.join(projectRoot, targetInstallPath);
-      fs.ensureDir(newInstallFullPath);
-
-      // Sync all skills from registry
-      let synced = 0;
-      const skills: SkillMeta[] = [];
-      const syncedSlugs: string[] = [];
-      const syncErrors: Array<{ slug: string; error: string }> = [];
-
-      for (const skillEntry of skillsConfig.skills) {
-        const { slug } = skillEntry;
-
-        if (!localRegistry.skillExists(slug)) {
-          syncErrors.push({
-            slug,
-            error: `Not found in local cache`,
-          });
-          continue;
-        }
-
-        const skillData = localRegistry.getSkill(slug);
-        if (!skillData) {
-          syncErrors.push({
-            slug,
-            error: `Failed to read from cache`,
-          });
-          continue;
-        }
-
-        const meta: Omit<SkillMeta, "sha256"> = {
-          slug,
-          name: skillData.meta.name,
-          description: skillData.meta.description,
-          tags: skillData.meta.tags,
-          compat: skillData.meta.compat,
-        };
-
-        fs.writeSkill(
-          { slug, content: skillData.content, sha256: skillData.sha256 },
-          meta,
-        );
-        synced++;
-
-        skills.push({ ...meta, sha256: skillData.sha256 });
-        syncedSlugs.push(slug);
+      // Reset .claude/skills and delegate all writes to the sync command.
+      if (hasExistingClaudeSkills) {
+        nodeFs.rmSync(targetInstallFullPath, { recursive: true, force: true });
       }
 
-      // Write system (meta) skill
-      fs.writeSystemSkill(META_SKILL_CONTENT);
-
-      // Generate SKILLS_INDEX.md
-      indexGen.writeIndex(skills);
-
-      // Update agent config files
-      fs.updateClaudeMd();
-      fs.updateAgentsMd();
-      fs.updateCursorRules();
-
-      // Sync native skill symlinks
-      fs.syncClaudeNativeSkills(syncedSlugs);
-
-      // Remove old install directory if it differs from the new one
-      if (needsPathMigration) {
-        const oldInstallFullPath = path.join(projectRoot, currentInstallPath);
-        if (
-          nodeFs.existsSync(oldInstallFullPath) &&
-          path.resolve(oldInstallFullPath) !== path.resolve(newInstallFullPath)
-        ) {
-          nodeFs.rmSync(oldInstallFullPath, { recursive: true });
-        }
-      }
-
-      spinner.succeed("Project upgrade complete!");
-
+      spinner.succeed("Project reset complete.");
       console.log("");
-      if (synced > 0) {
-        console.log(`Synced ${chalk.cyan(synced)} skills to ${chalk.cyan(targetInstallPath + "/")}.`);
-      }
-      if (needsPathMigration) {
-        console.log(
-          `Removed old install directory ${chalk.gray(currentInstallPath + "/")}.`,
-        );
-      }
-      if (hasLockfile) {
-        console.log(`Removed ${chalk.gray(".skills.lock")}.`);
-      }
+      console.log(chalk.gray("Running skill sync..."));
+      await syncCommand.parseAsync(["node", "skill", "sync"]);
 
-      if (syncErrors.length > 0) {
-        console.log("");
-        console.log(chalk.red(`${syncErrors.length} skill(s) failed to sync:`));
-        for (const error of syncErrors) {
-          console.log(`  ${chalk.red("✗")} ${error.slug}: ${error.error}`);
-        }
+      // Remove legacy install directory only after sync succeeds.
+      if (hasLegacySkillDir) {
+        nodeFs.rmSync(legacySkillDir, { recursive: true, force: true });
       }
     } catch (error) {
       console.error(
