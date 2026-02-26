@@ -1,10 +1,35 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import ora from 'ora';
+import * as yaml from 'yaml';
 import * as config from '../lib/config.js';
 import * as localRegistry from '../lib/local-registry/index.js';
 import * as fs from '../lib/fs.js';
 import * as indexGen from '../lib/index-gen.js';
+
+function extractDescriptionFromSkillContent(content: string): string | undefined {
+  const match = content.match(/^---\n([\s\S]*?)\n---(?:\n|$)/);
+  if (!match) {
+    return undefined;
+  }
+
+  try {
+    const frontmatter = yaml.parse(match[1]);
+    if (!frontmatter || typeof frontmatter !== 'object') {
+      return undefined;
+    }
+
+    for (const [key, value] of Object.entries(frontmatter as Record<string, unknown>)) {
+      if (key.toLowerCase() === 'description' && typeof value === 'string') {
+        return value;
+      }
+    }
+  } catch {
+    return undefined;
+  }
+
+  return undefined;
+}
 
 export const saveCommand = new Command('save')
   .description('Save local skill changes back to the registry')
@@ -64,7 +89,7 @@ export const saveCommand = new Command('save')
           // Get existing meta from registry (or project)
           const existingMeta = localRegistry.readMeta(skillSlug) || fs.readSkillMeta(skillSlug);
           const name = existingMeta?.name || skillSlug;
-          const description = existingMeta?.description;
+          const description = extractDescriptionFromSkillContent(content) ?? existingMeta?.description;
           const tags = existingMeta?.tags || [];
           const compat = existingMeta?.compat || [];
 
