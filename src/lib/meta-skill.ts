@@ -2,8 +2,7 @@
  * The meta-skill content that teaches AI agents how to use the skills system.
  * This is bundled with the CLI and installed to _system/SKILL.md during sync.
  */
-export const META_SKILL_CONTENT = `
----
+export const META_SKILL_CONTENT = `---
 name: Overskill skills manager — Agent Instructions
 description: This file explains how to use the Overskill skills manager to create, version, and sync skills to your projects.
 ---

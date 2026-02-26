@@ -1,6 +1,6 @@
 {
   "name": "overskill",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "description": "Overskill CLI - manage skills across repositories",
   "main": "./dist/index.js",
   "bin": {

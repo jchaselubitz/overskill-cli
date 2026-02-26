@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.4.0] - 2026-02-26
+
+### Changed
+- `skill new` now writes SKILL.md frontmatter keys in lowercase (`name`, `description`) instead of capitalized keys.
+- `skill new` now places the version marker comment at the bottom of SKILL.md content instead of the top.
+
+## [2.3.0] - 2026-02-26
+
+### Changed
+- `skill save` now updates the skill description in the registry if it is changed in the skill file.
+
 ## [2.2.0] - 2026-02-14
 
 ### Changed

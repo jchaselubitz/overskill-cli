@@ -54,7 +54,7 @@ function buildFrontmatter(params: {
   description: string;
   metadata?: Record<string, string>;
 }): string {
-  let body = `Name: ${params.name}\nDescription:`;
+  let body = `name: ${params.name}\ndescription:`;
 
   if (params.description) {
     body += ` ${params.description}`;
@@ -66,6 +66,15 @@ function buildFrontmatter(params: {
   }
 
   return `---\n${body}\n---\n\n`;
+}
+
+function appendVersionComment(content: string, version: string): string {
+  const trimmed = content.trimEnd();
+  if (!trimmed) {
+    return `<!-- version: ${version} -->\n`;
+  }
+
+  return `${trimmed}\n\n<!-- version: ${version} -->\n`;
 }
 
 /**
@@ -159,8 +168,9 @@ export const newCommand = new Command("new")
         metadata,
       });
 
-      // Build content with version comment at the top
+      // Build content with version comment at the bottom
       let content: string;
+      const initialVersion = '1.0.0';
 
       if (options.content) {
         // Read from file
@@ -169,13 +179,16 @@ export const newCommand = new Command("new")
           process.exit(1);
         }
         const fileContent = fs.readFileSync(options.content, 'utf-8');
-        content = `<!-- version: 1.0.0 -->\n${fileContent}`;
+        content = appendVersionComment(fileContent, initialVersion);
       } else if (options.blank) {
         // Frontmatter only
-        content = `<!-- version: 1.0.0 -->\n${frontmatter}\n`;
+        content = appendVersionComment(`${frontmatter}\n`, initialVersion);
       } else {
         // Template with frontmatter
-        content = `<!-- version: 1.0.0 -->\n${frontmatter}${SKILL_TEMPLATE.replace('{{name}}', name)}`;
+        content = appendVersionComment(
+          `${frontmatter}${SKILL_TEMPLATE.replace('{{name}}', name)}`,
+          initialVersion,
+        );
       }
 
       // Validate content

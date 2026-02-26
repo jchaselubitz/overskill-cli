@@ -4,3 +4,4 @@ sources:
 install_path: ".claude/skills"
 skills:
   - slug: "code-review"
+  - slug: "changelog"
