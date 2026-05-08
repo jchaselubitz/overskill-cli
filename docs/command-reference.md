@@ -2,6 +2,14 @@
 
 ## Project Setup
 
+### `skill version`
+
+Show the currently installed Overskill CLI version.
+
+### `skill update`
+
+Check npm for a newer Overskill release and update the global CLI if one is available.
+
 ### `skill init`
 
 Initialize a new skills configuration in the current directory.

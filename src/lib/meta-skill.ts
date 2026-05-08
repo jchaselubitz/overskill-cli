@@ -56,7 +56,7 @@ Run them in the terminal:
 To create a new skill in this repo:
 1. Run \`skill new <name>\` — this scaffolds the skill and opens it in your editor
 2. Edit the resulting SKILL.md file with your instructions
-3. Run \`skill update <name>\` — this saves your changes back to the local registry
+3. Run \`skill save <name>\` — this saves your changes back to the local registry
 
 A good SKILL.md includes:
 - A clear title (# heading)

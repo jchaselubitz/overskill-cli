@@ -19,6 +19,8 @@ import { deleteCommand } from "./commands/delete.js";
 import { configCommand } from "./commands/config.js";
 import { publishCommand } from "./commands/publish.js";
 import { renameCommand } from "./commands/rename.js";
+import { versionCommand } from "./commands/version.js";
+import { updateCommand } from "./commands/update.js";
 // Cloud-related commands
 import { loginCommand } from "./commands/login.js";
 import { pushCommand } from "./commands/push.js";
@@ -47,10 +49,10 @@ program.addHelpText(
   `
     Tips:
       To create a new skill:
-        skill new <slug>  →  edit the SKILL.md file  →  skill update <slug>
+        skill new <slug>  →  edit the SKILL.md file  →  skill save <slug>
 
       To modify an existing skill:
-        skill open <slug>  →  edit in your editor  →  skill update <slug>
+        skill open <slug>  →  edit in your editor  →  skill save <slug>
         Then run skill sync in any project that uses this skill.
     `,
 );
@@ -69,6 +71,8 @@ program.addCommand(infoCommand);
 program.addCommand(importCommand);
 program.addCommand(validateCommand);
 program.addCommand(deleteCommand);
+program.addCommand(versionCommand);
+program.addCommand(updateCommand);
 program.addCommand(configCommand);
 program.addCommand(publishCommand);
 

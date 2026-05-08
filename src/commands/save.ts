@@ -32,7 +32,6 @@ function extractDescriptionFromSkillContent(content: string): string | undefined
 }
 
 export const saveCommand = new Command('save')
-  .alias('update')
   .description('Save local skill changes back to the registry')
   .argument('[slug]', 'Skill slug to save (optional, saves all modified if not provided)')
   .action(async (slug?: string) => {
@@ -46,7 +45,7 @@ export const saveCommand = new Command('save')
 
       const skillsConfig = config.readConfig();
 
-      // Determine which skills to update
+      // Determine which skills to save
       let skillsToUpdate: string[] = [];
 
       if (slug) {
@@ -67,7 +66,7 @@ export const saveCommand = new Command('save')
         }
 
         if (skillsToUpdate.length === 0) {
-          console.log(chalk.yellow('No modified skills to update.'));
+          console.log(chalk.yellow('No modified skills to save.'));
           console.log(`Edit a skill with ${chalk.cyan('skill open <slug>')} first, or specify a slug directly.`);
           return;
         }

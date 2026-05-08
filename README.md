@@ -43,6 +43,10 @@ npm install -g overskill
 # Or install with Homebrew
 brew tap jchaselubitz/tap
 brew install overskill
+
+# Check or update the CLI
+skill version
+skill update
   
 # Initialize in a project
 cd your-project
