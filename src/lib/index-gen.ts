@@ -16,7 +16,7 @@ export function generateIndexContent(skills: SkillMeta[]): string {
 
   // Add system skill reference first
   lines.push('## _system (Meta-Skill)');
-  lines.push('- **Description:** Instructions for AI agents on how to use the skills system');
+  lines.push('- **Description:** Instructions for AI agents on how to use create, update, remove, and otherwise modify skills using the Overskill CLI');
   lines.push('- **File:** _system/SKILL.md');
   lines.push('');
 

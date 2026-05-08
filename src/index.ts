@@ -45,9 +45,13 @@ program
 program.addHelpText(
   "after",
   `
-    Tip: To modify a skill:
-      skill open <slug>  →  edit in your editor  →  skill save <slug>
-      Then run skill sync in any project that uses this skill.
+    Tips:
+      To create a new skill:
+        skill new <slug>  →  edit the SKILL.md file  →  skill update <slug>
+
+      To modify an existing skill:
+        skill open <slug>  →  edit in your editor  →  skill update <slug>
+        Then run skill sync in any project that uses this skill.
     `,
 );
 

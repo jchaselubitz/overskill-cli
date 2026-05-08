@@ -32,6 +32,7 @@ function extractDescriptionFromSkillContent(content: string): string | undefined
 }
 
 export const saveCommand = new Command('save')
+  .alias('update')
   .description('Save local skill changes back to the registry')
   .argument('[slug]', 'Skill slug to save (optional, saves all modified if not provided)')
   .action(async (slug?: string) => {
